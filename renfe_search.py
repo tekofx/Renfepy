@@ -36,7 +36,7 @@ def setup_driver():
     else:
         # Options for manjaro
         options.binary_location = "/usr/bin/chromium"
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
         chrome_driver_binary = "/usr/bin/chromedriver"
 
     # Get html
