@@ -10,13 +10,12 @@ import platform
 
 # Config logging
 logging.basicConfig(
-    filename="logs",
+    filename="/tmp/renfe_search_log",
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%H:%M:%S",
     level=logging.INFO,
 )
-logging.info("\n\n\nStarted script")
 
 
 def setup_driver():
@@ -387,12 +386,12 @@ def main():
         print("Insert departure date as d-mm-yyyy")
         going_date = input()
 
-        print("Insert return date as d-mm-yyyy")
+        print("Insert return date as d-mm-yyyy or hit enter to leave it blank")
         return_date = input()
         if return_date == "":
             return_date = None
 
-        print("Insert train type")
+        print("Insert train type or hit enter to leave it blank")
         train_type = input()
         if train_type == "":
             train_type = None
