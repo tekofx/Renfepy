@@ -36,7 +36,7 @@ def setup_driver():
     else:
         # Options for manjaro
         options.binary_location = "/usr/bin/chromium"
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         chrome_driver_binary = "/usr/bin/chromedriver"
 
     # Get html
@@ -70,8 +70,8 @@ def set_origin(driver, origin: str):
     try:
         origins_list[0].click()
     except:
-        print("error")
-
+        logging.error("error when selecting origin from panel")
+        return
     logging.info("Selected origin {origin} from origin list".format(origin=origin))
 
 
@@ -309,35 +309,41 @@ def make_search(
     return_date: str = None,
     train_type: str = None,
 ):
-    # Setup driver
-    driver = setup_driver()
+    try:
+        # Setup driver
+        driver = setup_driver()
 
-    # Process going date
-    going_date = process_date(going_date)
+        # Process going date
+        going_date = process_date(going_date)
 
-    # Process return date
-    return_date = process_date(return_date)
+        # Process return date
+        return_date = process_date(return_date)
 
-    # Set origin
-    set_origin(driver, origin)
+        # Set origin
+        set_origin(driver, origin)
 
-    # Set destination
-    set_destination(driver, destination)
+        # Set destination
+        set_destination(driver, destination)
 
-    # Select origin date
-    select_origin_date(driver, going_date)
+        # Select origin date
+        select_origin_date(driver, going_date)
 
-    aux = False
-    if return_date is not None:
-        difference_days = get_difference_days(going_date, return_date)
-        select_destination_date(driver, difference_days)
-        aux = True
+        aux = False
+        if return_date is not None:
+            difference_days = get_difference_days(going_date, return_date)
+            select_destination_date(driver, difference_days)
+            aux = True
 
-    # Click search button
-    submit_search(driver)
+        # Click search button
+        submit_search(driver)
+    except:
+        print("Error: Could not make the search, try it again")
+        logging.error("Error at searchin")
+        driver.quit()
+        return
 
     # Get results
-    sleep(2)
+    sleep(5)
     if train_type is None:
         results = get_results(driver, aux)
     else:
@@ -380,8 +386,15 @@ def main():
 
         print("Insert train type")
         train_type = input()
+    elif len(sys.argv) == 5:
+        output = make_search(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
 
-    output = make_search(origin, destination, going_date, return_date, train_type)
+    elif len(sys.argv) == 6:
+        output = make_search(
+            sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+        )
+
+    # output = make_search(origin, destination, going_date, return_date, train_type)
 
     print(output)
 
