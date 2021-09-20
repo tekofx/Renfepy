@@ -353,15 +353,17 @@ def make_search(
 
 def print_help():
     output = """
-    Usage: renfe_search <origin> <destination> <going_date> [FLAGS]
+    Usage: 
+        renfe_search <origin> <destination> <going_date> [FLAGS]
+        renfe_search [OPTION]
 
     [Flags]
-    -r, --return: Set return date
-    -t, --type: Set type of train
+        -r, --return: Set return date
+        -t, --type: Set type of train
 
-    Other options:
-    -h: Get help
-    -i: Interactive mode
+    [OPTIONS]
+        -h: Get help
+        -i: Interactive mode
     """
     print(output)
 
