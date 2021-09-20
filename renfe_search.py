@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 import logging
 import sys
 import platform
-
+from tqdm import tqdm
 
 # Config logging
 logging.basicConfig(
@@ -309,23 +309,32 @@ def make_search(
     train_type: str = None,
 ):
     try:
+        progress_bar = tqdm(total=100)
+
         # Setup driver
+        progress_bar.set_description("CMaking search")
+        progress_bar.update(10)
         driver = setup_driver()
 
         # Process going date
         going_date = process_date(going_date)
+        progress_bar.update(10)
 
         # Process return date
         return_date = process_date(return_date)
+        progress_bar.update(10)
 
         # Set origin
         set_origin(driver, origin)
+        progress_bar.update(10)
 
         # Set destination
         set_destination(driver, destination)
+        progress_bar.update(10)
 
         # Select origin date
         select_origin_date(driver, going_date)
+        progress_bar.update(10)
 
         aux = False
         if return_date is not None:
@@ -335,6 +344,8 @@ def make_search(
 
         # Click search button
         submit_search(driver)
+        progress_bar.update(10)
+
     except:
         print("Error: Could not make the search, try it again")
         logging.error("Error at searchin")
@@ -348,6 +359,9 @@ def make_search(
     else:
         results = get_results(driver, aux, train_type)
     driver.quit()
+    progress_bar.update(30)
+    progress_bar.close()
+
     return results
 
 
@@ -399,7 +413,6 @@ def main():
             train_type = None
 
     if "-r" in sys.argv:
-        print("a")
         var = sys.argv.index("-r")
         return_date = sys.argv[var + 1]
     elif "--return" in sys.argv:
