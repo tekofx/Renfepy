@@ -419,12 +419,8 @@ def main():
     origin = sys.argv[1]
     destination = sys.argv[2]
     going_date = sys.argv[3]
-    print(origin)
-    print(destination)
-    print(going_date)
-    print(return_date)
-    print(train_type)
 
+    print("Making search...")
     output = make_search(
         origin,
         destination,
