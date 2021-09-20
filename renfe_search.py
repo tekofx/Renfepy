@@ -354,8 +354,13 @@ def make_search(
 
 def print_help():
     output = """
-    Usage: renfe_search [FLAGS] <origin> <destination> <going_date> <return_date>
+    Usage: renfe_search <origin> <destination> <going_date> [FLAGS]
 
+    [Flags]
+    -r, --return: Set return date
+    -t, --type: Set type of train
+
+    Other options:
     -h: Get help
     -i: Interactive mode
     """
@@ -363,15 +368,16 @@ def print_help():
 
 
 def main():
+
     if len(sys.argv) == 1:
         print("Error: Not search specified")
 
-    elif sys.argv[1] == "-h":
+    if sys.argv[1] == "-h":
         # Print help
         print_help()
         return
 
-    elif sys.argv[1] == "-i":  # Interactive mode
+    if sys.argv[1] == "-i":  # Interactive mode
         print("Insert origin")
         origin = input()
 
@@ -383,18 +389,49 @@ def main():
 
         print("Insert return date as d-mm-yyyy")
         return_date = input()
+        if return_date == "":
+            return_date = None
 
         print("Insert train type")
         train_type = input()
-    elif len(sys.argv) == 5:
-        output = make_search(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        if train_type == "":
+            train_type = None
 
-    elif len(sys.argv) == 6:
-        output = make_search(
-            sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
-        )
+    if "-r" in sys.argv:
+        print("a")
+        var = sys.argv.index("-r")
+        return_date = sys.argv[var + 1]
+    elif "--return" in sys.argv:
+        var = sys.argv.index("--return")
+        return_date = sys.argv[var + 1]
+    else:
+        return_date = None
 
-    # output = make_search(origin, destination, going_date, return_date, train_type)
+    if "-t" in sys.argv:
+        var = sys.argv.index("-t")
+        train_type = sys.argv[var + 1]
+    elif "-type" in sys.argv:
+        var = sys.argv.index("-t")
+        train_type = sys.argv[var + 1]
+    else:
+        train_type = None
+
+    origin = sys.argv[1]
+    destination = sys.argv[2]
+    going_date = sys.argv[3]
+    print(origin)
+    print(destination)
+    print(going_date)
+    print(return_date)
+    print(train_type)
+
+    output = make_search(
+        origin,
+        destination,
+        going_date,
+        return_date,
+        train_type,
+    )
 
     print(output)
 
