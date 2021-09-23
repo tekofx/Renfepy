@@ -65,7 +65,7 @@ def set_origin(driver, origin: str):
 
     # FIXME: Sometimes gives error
     for x in origins_list:
-        print(x.text)
+        logging.info("Clicked " + x.text)
     try:
         origins_list[0].click()
     except:
@@ -199,6 +199,7 @@ def get_trains(driver, type_of_train: str = None):
     t = PrettyTable(fields)
 
     trains = driver.find_elements_by_class_name("trayectoRow")
+    # TODO: make progress bar increment here
     for train in trains:
 
         # Train type
@@ -312,7 +313,7 @@ def make_search(
         progress_bar = tqdm(total=100)
 
         # Setup driver
-        progress_bar.set_description("CMaking search")
+        progress_bar.set_description("Making search")
         progress_bar.update(10)
         driver = setup_driver()
 
