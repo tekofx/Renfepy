@@ -6,7 +6,6 @@ from prettytable import PrettyTable
 import logging
 import sys
 import platform
-from tqdm import tqdm
 
 # Config logging
 logging.basicConfig(
@@ -35,7 +34,7 @@ def setup_driver():
     else:
         # Options for manjaro
         options.binary_location = "/usr/bin/chromium"
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         chrome_driver_binary = "/usr/bin/chromedriver"
 
     # Get html
@@ -264,7 +263,7 @@ def get_results(driver, return_trains: bool, type_of_train: str = None):
     results = driver.find_element_by_id("tab-mensaje_contenido")
     message = results.get_attribute("innerHTML")
     if "no se encuentra disponible" in message:
-        output += "Theres no trains available\n"
+        output += "No trains available\n"
         logging.info("Theres no trains available")
 
     else:
@@ -275,13 +274,14 @@ def get_results(driver, return_trains: bool, type_of_train: str = None):
 
         # Destination
         destination = places[2].text
+        output += "\n---------------Going train---------------\n"
 
         # Get going date
         going_date = driver.find_element_by_id("fechaSeleccionada0").get_attribute(
             "value"
         )
         # Get going trains
-        output = "{place} ({date}):\n".format(place=origin, date=going_date)
+        output += "{place} ({date}):\n".format(place=origin, date=going_date)
         output += get_trains(driver, type_of_train)
 
         if return_trains is True:
@@ -293,12 +293,19 @@ def get_results(driver, return_trains: bool, type_of_train: str = None):
             return_date = driver.find_element_by_id("fechaSeleccionada1").get_attribute(
                 "value"
             )
-            # Get return trains
-            output += "\n\n{place} ({date}):\n".format(
-                place=destination, date=return_date
-            )
-            output += get_trains(driver, type_of_train)
 
+            output += "\n\n---------------Return train---------------\n"
+            # Check if there's return trains
+            aux = driver.find_element_by_id("tab-mensaje_contenido").text
+            if "no se encuentra disponible" not in aux:
+
+                # Get return trains
+                output += "{place} ({date}):\n".format(
+                    place=destination, date=return_date
+                )
+                output += get_trains(driver, type_of_train)
+            else:
+                output += "No trains available\n"
     return output
 
 
@@ -310,32 +317,24 @@ def make_search(
     train_type: str = None,
 ):
     try:
-        progress_bar = tqdm(total=100)
 
         # Setup driver
-        progress_bar.set_description("Making search")
-        progress_bar.update(10)
         driver = setup_driver()
 
         # Process going date
         going_date = process_date(going_date)
-        progress_bar.update(10)
 
         # Process return date
         return_date = process_date(return_date)
-        progress_bar.update(10)
 
         # Set origin
         set_origin(driver, origin)
-        progress_bar.update(10)
 
         # Set destination
         set_destination(driver, destination)
-        progress_bar.update(10)
 
         # Select origin date
         select_origin_date(driver, going_date)
-        progress_bar.update(10)
 
         aux = False
         if return_date is not None:
@@ -345,11 +344,10 @@ def make_search(
 
         # Click search button
         submit_search(driver)
-        progress_bar.update(10)
 
-    except:
-        print("Error: Could not make the search, try it again")
-        logging.error("Error at searchin")
+    except Exception as error:
+        print("Error: {}".format(error))
+        logging.error("Error at searching")
         driver.quit()
         return
 
@@ -360,8 +358,6 @@ def make_search(
     else:
         results = get_results(driver, aux, train_type)
     driver.quit()
-    progress_bar.update(30)
-    progress_bar.close()
 
     return results
 
