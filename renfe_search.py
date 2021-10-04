@@ -56,6 +56,7 @@ class Renfe_search:
             origin (str): of the train
         """
         try:
+            sleep(1)
             # Write the origin
             origin_text_field = self.driver.find_elements_by_id("origin")
             origin_text_field[1].send_keys(origin)
