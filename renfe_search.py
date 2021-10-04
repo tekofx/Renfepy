@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 
-class renfe_search:
+class Renfe_search:
     def __init__(self, gui: bool):
 
         self.driver = self.setup_driver(gui)
@@ -462,9 +462,9 @@ class Main:
     print("Making search...")
 
     if "--gui" in sys.argv or "-g" in sys.argv:
-        rf = renfe_search(True)
+        rf = Renfe_search(True)
     else:
-        rf = renfe_search(False)
+        rf = Renfe_search(False)
 
     output = rf.make_search(
         origin,
