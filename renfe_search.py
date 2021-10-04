@@ -19,12 +19,12 @@ logging.basicConfig(
 
 
 class renfe_search:
-    def __init__(self):
+    def __init__(self, gui: bool):
 
-        self.driver = self.setup_driver()
+        self.driver = self.setup_driver(gui)
         pass
 
-    def setup_driver(self):
+    def setup_driver(self, gui: bool):
         """Creates a selenium driver
 
         Returns:
@@ -34,9 +34,10 @@ class renfe_search:
         try:
             options = webdriver.ChromeOptions()
 
-            # options.add_argument("--no-sandbox")
-            # options.add_argument("--disable-dev-shm-usage")
-            # options.add_argument("--headless")
+            if not gui:
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--headless")
             chrome_driver_binary = "/usr/bin/chromedriver"
 
             # Get html
@@ -383,10 +384,12 @@ class renfe_search:
             results = self.get_results(aux)
         else:
             results = self.get_results(aux, train_type)
-        # self.driver.quit()
+        self.driver.quit()
 
         return results
 
+
+class Main:
     def print_help():
         output = """
         Usage: 
@@ -396,6 +399,7 @@ class renfe_search:
         [Flags]
             -r, --return: Set return date
             -t, --type: Set type of train
+            -g, --gui: Show the browser 
 
         [OPTIONS]
             -h: Get help
@@ -403,16 +407,12 @@ class renfe_search:
         """
         print(output)
 
-
-class Main:
-    rf = renfe_search()
-
     if len(sys.argv) == 1:
         print("Error: Not search specified")
 
     if sys.argv[1] == "-h":
         # Print help
-        rf.print_help()
+        print_help()
         sys.exit()
 
     if sys.argv[1] == "-i":  # Interactive mode
@@ -458,6 +458,12 @@ class Main:
     going_date = sys.argv[3]
 
     print("Making search...")
+
+    if "--gui" in sys.argv or "-g" in sys.argv:
+        rf = renfe_search(True)
+    else:
+        rf = renfe_search(False)
+
     output = rf.make_search(
         origin,
         destination,
