@@ -147,7 +147,7 @@ class renfe_search:
         output = [going_day_rest, going_day_sum, return_day_rest, return_day_sum]
         return output
 
-    def select_return_date(self, going_date):
+    def select_going_date(self, going_date):
         try:
             going_day_sum = self.get_dates_buttons()[1]
             selected_origin_date = self.get_selected_origin_date()
@@ -190,16 +190,16 @@ class renfe_search:
 
     def get_difference_days(self, going_date: str, return_date):
         try:
-            going_day = going_date[0]
-            going_month = going_date[1]
-            going_year = going_date[2]
+            going_day = int(going_date[0])
+            going_month = int(going_date[1])
+            going_year = int(going_date[2])
 
-            return_day = return_date[0]
-            return_month = return_date[1]
-            return_year = return_date[2]
+            return_day = int(return_date[0])
+            return_month = int(return_date[1])
+            return_year = int(return_date[2])
 
-            going_date = datetime.datetime(going_year, going_month, going_day)
-            return_date = datetime.datetime(return_year, return_month, return_day)
+            going_date = datetime.date(going_year, going_month, going_day)
+            return_date = datetime.date(return_year, return_month, return_day)
             difference_days = (return_date - going_date).days
             return difference_days
         except Exception as error:
@@ -209,6 +209,8 @@ class renfe_search:
         try:
 
             return_day_sum = self.get_dates_buttons()[3]
+            print(type(difference_days))
+            print(difference_days)
             for i in range(difference_days):
                 self.driver.execute_script("arguments[0].click();", return_day_sum)
         except Exception as error:
@@ -367,7 +369,7 @@ class renfe_search:
         self.set_destination(destination)
 
         # Select origin date
-        self.select_return_date(going_date)
+        self.select_going_date(going_date)
 
         aux = False
         if return_date is not None:
