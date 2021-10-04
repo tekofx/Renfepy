@@ -82,7 +82,7 @@ class Renfe_search:
 
         except Exception as error:
             print("Error setting origin: {}".format(error))
-            self.driver.quit()
+            # self.driver.quit()
 
     def set_destination(self, destination: str):
         """Sets destination of the train
@@ -384,7 +384,7 @@ class Renfe_search:
             results = self.get_results(aux)
         else:
             results = self.get_results(aux, train_type)
-        # self.driver.quit()
+        self.driver.quit()
 
         return results
 
