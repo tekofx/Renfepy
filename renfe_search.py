@@ -208,7 +208,7 @@ class renfe_search:
     def select_destination_date(self, difference_days):
         try:
 
-            return_day_sum = self.get_dates_buttons(self.driver)[3]
+            return_day_sum = self.get_dates_buttons()[3]
             for i in range(difference_days):
                 self.driver.execute_script("arguments[0].click();", return_day_sum)
         except Exception as error:
