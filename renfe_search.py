@@ -209,8 +209,6 @@ class Renfe_search:
         try:
 
             return_day_sum = self.get_dates_buttons()[3]
-            print(type(difference_days))
-            print(difference_days)
             for i in range(difference_days):
                 self.driver.execute_script("arguments[0].click();", return_day_sum)
         except Exception as error:
@@ -386,7 +384,7 @@ class Renfe_search:
             results = self.get_results(aux)
         else:
             results = self.get_results(aux, train_type)
-        self.driver.quit()
+        # self.driver.quit()
 
         return results
 
