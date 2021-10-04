@@ -5,7 +5,6 @@ import datetime
 from prettytable import PrettyTable
 import logging
 import sys
-import platform
 
 import selenium
 
@@ -35,9 +34,9 @@ class renfe_search:
         try:
             options = webdriver.ChromeOptions()
 
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--headless")
+            # options.add_argument("--no-sandbox")
+            # options.add_argument("--disable-dev-shm-usage")
+            # options.add_argument("--headless")
             chrome_driver_binary = "/usr/bin/chromedriver"
 
             # Get html
@@ -48,7 +47,6 @@ class renfe_search:
             return driver
         except Exception as error:
             print("Error at setting driver: {}".format(error))
-            sys.exit()
 
     def set_origin(self, origin: str):
         """Sets the origin of the train
@@ -71,7 +69,7 @@ class renfe_search:
 
             # FIXME: Sometimes gives error
             for x in origins_list:
-                logging.info("Clicked " + x.text)
+                logging.info("clicked " + x.text)
             try:
                 origins_list[0].click()
             except:
@@ -84,7 +82,6 @@ class renfe_search:
         except Exception as error:
             print("Error setting origin: {}".format(error))
             self.driver.quit()
-            sys.exit()
 
     def set_destination(self, destination: str):
         """Sets destination of the train
@@ -123,7 +120,6 @@ class renfe_search:
         except Exception as error:
             print("Error at setting destination: {}".format(error))
             self.driver.quit()
-            sys.exit()
 
     def get_selected_origin_date(self):
         # Get selected dates
@@ -175,7 +171,6 @@ class renfe_search:
         except Exception as error:
             print("Error selecting origin date: {}".format(error))
             self.driver.quit()
-            sys.exit()
 
     def process_date(self, date: str = None):
         """Gets a string date and transforms it into a int list
@@ -191,7 +186,6 @@ class renfe_search:
             return output
         except Exception as error:
             print("Error at processing date: {}".format(error))
-            sys.exit()
 
     def get_difference_days(self, going_date: str, return_date):
         try:
@@ -209,7 +203,6 @@ class renfe_search:
             return difference_days
         except Exception as error:
             print("Error getting difference days: {}".format(error))
-            sys.exit()
 
     def select_destination_date(self, difference_days):
         try:
@@ -220,19 +213,17 @@ class renfe_search:
         except Exception as error:
             print("Error selecting destination date: {}".format(error))
             self.driver.quit()
-            sys.exit()
 
     def submit_search(self):
         # Introduce search
         try:
-            submit_button = self.driver.find_elements_by_class_name(
-                "mdc-button__ripple"
+            submit_button = self.driver.find_element_by_css_selector(
+                ".mdc-button.mdc-button--touch.mdc-button--unelevated.rf-button.rf-button--special.mdc-ripple-upgraded"
             )
-            self.driver.execute_script("arguments[0].click();", submit_button[1])
+            self.driver.execute_script("arguments[0].click();", submit_button)
         except Exception as error:
             print("Error submitting search: {}".format(error))
-            self.driver.quit()
-            sys.exit()
+            # self.driver.quit()
 
     def get_trains(self, type_of_train: str = None):
         output = ""
@@ -324,7 +315,7 @@ class renfe_search:
                 ).get_attribute("value")
                 # Get going trains
                 output += "{place} ({date}):\n".format(place=origin, date=going_date)
-                output += self.get_trains(self.driver, type_of_train)
+                output += self.get_trains(type_of_train)
 
                 if return_trains is True:
                     # Select return tab
@@ -363,9 +354,7 @@ class renfe_search:
     ):
 
         # Process going date
-        print(going_date)
         going_date = self.process_date(going_date)
-        print(going_date)
 
         # Process return date
         return_date = self.process_date(return_date)
@@ -394,7 +383,7 @@ class renfe_search:
             results = self.get_results(aux)
         else:
             results = self.get_results(aux, train_type)
-        self.driver.quit()
+        # self.driver.quit()
 
         return results
 
@@ -415,7 +404,7 @@ class renfe_search:
         print(output)
 
 
-def main():
+class Main:
     rf = renfe_search()
 
     if len(sys.argv) == 1:
@@ -481,4 +470,4 @@ def main():
 
 
 if len(sys.argv) > 1:
-    main()
+    m = Main()
