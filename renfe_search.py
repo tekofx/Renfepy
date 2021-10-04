@@ -339,7 +339,7 @@ class renfe_search:
                         output += "{place} ({date}):\n".format(
                             place=destination, date=return_date
                         )
-                        output += self.get_trains(self.driver, type_of_train)
+                        output += self.get_trains(type_of_train)
                     else:
                         output += "No trains available\n"
             return output
