@@ -7,6 +7,8 @@ import logging
 import sys
 import platform
 
+import selenium
+
 # Config logging
 logging.basicConfig(
     filename="/tmp/renfe_search_log",
@@ -23,26 +25,24 @@ def setup_driver():
     Returns:
         selenium.webdriver.chrome.webdriver.WebDriver: driver
     """
-    options = webdriver.ChromeOptions()
 
-    if platform.machine() == "armv7l":
-        # Options for raspbian
+    try:
+        options = webdriver.ChromeOptions()
+
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--headless")
         chrome_driver_binary = "/usr/bin/chromedriver"
-    else:
-        # Options for manjaro
-        options.binary_location = "/usr/bin/chromium"
-        # options.add_argument("--headless")
-        chrome_driver_binary = "/usr/bin/chromedriver"
 
-    # Get html
-    driver = webdriver.Chrome(chrome_driver_binary, options=options)
-    html = "https://www.renfe.com/es/es"
-    driver.get(html)
+        # Get html
+        driver = webdriver.Chrome(chrome_driver_binary, options=options)
+        html = "https://www.renfe.com/es/es"
+        driver.get(html)
 
-    return driver
+        return driver
+    except Exception as error:
+        print("Error at setting driver: {}".format(error))
+        sys.exit()
 
 
 def set_origin(driver, origin: str):
@@ -52,25 +52,31 @@ def set_origin(driver, origin: str):
         driver (selenium.webdriver): driver
         origin (str): of the train
     """
-    # Write the origin
-    origin_text_field = driver.find_elements_by_id("origin")
-    origin_text_field[1].send_keys(origin)
-    logging.info("Written in origin search bar: {origin}".format(origin=origin))
-
-    # Select origin from list
-    origins_list = driver.find_elements_by_id("awesomplete_list_2_item_0")
-    if len(origins_list) == 0:
-        origins_list = driver.find_elements_by_id("awesomplete_list_1_item_0")
-
-    # FIXME: Sometimes gives error
-    for x in origins_list:
-        logging.info("Clicked " + x.text)
     try:
-        origins_list[0].click()
-    except:
-        logging.error("error when selecting origin from panel")
-        return
-    logging.info("Selected origin {origin} from origin list".format(origin=origin))
+        # Write the origin
+        origin_text_field = driver.find_elements_by_id("origin")
+        origin_text_field[1].send_keys(origin)
+        logging.info("Written in origin search bar: {origin}".format(origin=origin))
+
+        # Select origin from list
+        origins_list = driver.find_elements_by_id("awesomplete_list_2_item_0")
+        if len(origins_list) == 0:
+            origins_list = driver.find_elements_by_id("awesomplete_list_1_item_0")
+
+        # FIXME: Sometimes gives error
+        for x in origins_list:
+            logging.info("Clicked " + x.text)
+        try:
+            origins_list[0].click()
+        except:
+            logging.error("error when selecting origin from panel")
+            sys.exit()
+        logging.info("Selected origin {origin} from origin list".format(origin=origin))
+
+    except Exception as error:
+        print("Error setting origin: {}".format(error))
+        driver.quit()
+        sys.exit()
 
 
 def set_destination(driver, destination: str):
@@ -80,26 +86,31 @@ def set_destination(driver, destination: str):
         driver (selenium.webdriver): driver
         destination (str): of the train
     """
-    # Write the destination in the search box
-    destination_text_field = driver.find_elements_by_id("destination")
-    destination_text_field[1].send_keys(destination)
-    logging.info(
-        "Written in destination search bar: {destination}".format(
-            destination=destination
+    try:
+        # Write the destination in the search box
+        destination_text_field = driver.find_elements_by_id("destination")
+        destination_text_field[1].send_keys(destination)
+        logging.info(
+            "Written in destination search bar: {destination}".format(
+                destination=destination
+            )
         )
-    )
 
-    # Select origing from list
-    destinations_list = driver.find_elements_by_id("awesomplete_list_1_item_0")
-    if destination not in destinations_list[0].get_attribute("innerHTML").lower():
-        destinations_list = driver.find_elements_by_id("awesomplete_list_2_item_0")
+        # Select origing from list
+        destinations_list = driver.find_elements_by_id("awesomplete_list_1_item_0")
+        if destination not in destinations_list[0].get_attribute("innerHTML").lower():
+            destinations_list = driver.find_elements_by_id("awesomplete_list_2_item_0")
 
-    driver.execute_script("arguments[0].click();", destinations_list[0])
-    logging.info(
-        "Selected destination {destination} from destination list".format(
-            destination=destination
+        driver.execute_script("arguments[0].click();", destinations_list[0])
+        logging.info(
+            "Selected destination {destination} from destination list".format(
+                destination=destination
+            )
         )
-    )
+    except Exception as error:
+        print("Error at setting destination: {}".format(error))
+        driver.quit()
+        sys.exit()
 
 
 def get_selected_origin_date(driver):
@@ -130,26 +141,31 @@ def get_dates_buttons(driver):
 
 
 def select_origin_date(driver, going_date):
-    going_day_sum = get_dates_buttons(driver)[1]
-    selected_origin_date = get_selected_origin_date(driver)
-    going_day = going_date[0]
-    going_month = going_date[1]
-    going_year = going_date[2]
-
-    selected_origin_day = selected_origin_date[0]
-    selected_origin_month = selected_origin_date[1]
-    selected_origin_year = selected_origin_date[2]
-    while (
-        selected_origin_day != going_day
-        or selected_origin_month != going_month
-        or selected_origin_year != going_year
-    ):
-        driver.execute_script("arguments[0].click();", going_day_sum)
-        sleep(0.01)
+    try:
+        going_day_sum = get_dates_buttons(driver)[1]
         selected_origin_date = get_selected_origin_date(driver)
+        going_day = going_date[0]
+        going_month = going_date[1]
+        going_year = going_date[2]
+
         selected_origin_day = selected_origin_date[0]
         selected_origin_month = selected_origin_date[1]
         selected_origin_year = selected_origin_date[2]
+        while (
+            selected_origin_day != going_day
+            or selected_origin_month != going_month
+            or selected_origin_year != going_year
+        ):
+            driver.execute_script("arguments[0].click();", going_day_sum)
+            sleep(0.01)
+            selected_origin_date = get_selected_origin_date(driver)
+            selected_origin_day = selected_origin_date[0]
+            selected_origin_month = selected_origin_date[1]
+            selected_origin_year = selected_origin_date[2]
+    except Exception as error:
+        print("Error selecting origin date: {}".format(error))
+        driver.quit()
+        sys.exit()
 
 
 def process_date(date: str = None):
@@ -158,38 +174,57 @@ def process_date(date: str = None):
     Args:
         date (str): [description]
     """
-    if date is None:
-        return None
-    str_date_list = date.split("-")
-    output = list(map(int, str_date_list))
-    return output
+    try:
+        if date is None:
+            return None
+        str_date_list = date.split("-")
+        output = list(map(int, str_date_list))
+        return output
+    except Exception as error:
+        print("Error at processing date: {}".format(error))
+        sys.exit()
 
 
 def get_difference_days(going_date: str, return_date):
-    going_day = going_date[0]
-    going_month = going_date[1]
-    going_year = going_date[2]
+    try:
+        going_day = going_date[0]
+        going_month = going_date[1]
+        going_year = going_date[2]
 
-    return_day = return_date[0]
-    return_month = return_date[1]
-    return_year = return_date[2]
+        return_day = return_date[0]
+        return_month = return_date[1]
+        return_year = return_date[2]
 
-    going_date = datetime.datetime(going_year, going_month, going_day)
-    return_date = datetime.datetime(return_year, return_month, return_day)
-    difference_days = (return_date - going_date).days
-    return difference_days
+        going_date = datetime.datetime(going_year, going_month, going_day)
+        return_date = datetime.datetime(return_year, return_month, return_day)
+        difference_days = (return_date - going_date).days
+        return difference_days
+    except Exception as error:
+        print("Error getting difference days: {}".format(error))
+        sys.exit()
 
 
 def select_destination_date(driver, difference_days):
-    return_day_sum = get_dates_buttons(driver)[3]
-    for i in range(difference_days):
-        driver.execute_script("arguments[0].click();", return_day_sum)
+    try:
+
+        return_day_sum = get_dates_buttons(driver)[3]
+        for i in range(difference_days):
+            driver.execute_script("arguments[0].click();", return_day_sum)
+    except Exception as error:
+        print("Error at setting driver: {}".format(error))
+        driver.quit()
+        sys.exit()
 
 
 def submit_search(driver):
     # Introduce search
-    submit_button = driver.find_elements_by_class_name("mdc-button__ripple")
-    driver.execute_script("arguments[0].click();", submit_button[1])
+    try:
+        submit_button = driver.find_elements_by_class_name("mdc-button__ripple")
+        driver.execute_script("arguments[0].click();", submit_button[1])
+    except Exception as error:
+        print("Error submitting search: {}".format(error))
+        driver.quit()
+        sys.exit()
 
 
 def get_trains(driver, type_of_train: str = None):
@@ -259,54 +294,58 @@ def get_results(driver, return_trains: bool, type_of_train: str = None):
     Returns:
         str: table with results
     """
-    output = ""
-    results = driver.find_element_by_id("tab-mensaje_contenido")
-    message = results.get_attribute("innerHTML")
-    if "no se encuentra disponible" in message:
-        output += "No trains available\n"
-        logging.info("Theres no trains available")
+    try:
+        output = ""
+        results = driver.find_element_by_id("tab-mensaje_contenido")
+        message = results.get_attribute("innerHTML")
+        if "no se encuentra disponible" in message:
+            output += "No trains available\n"
+            logging.info("Theres no trains available")
 
-    else:
-        places = driver.find_elements_by_css_selector("span.h3")
+        else:
+            places = driver.find_elements_by_css_selector("span.h3")
 
-        # Origin
-        origin = places[0].text
+            # Origin
+            origin = places[0].text
 
-        # Destination
-        destination = places[2].text
-        output += "\n---------------Going train---------------\n"
+            # Destination
+            destination = places[2].text
+            output += "\n---------------Going train---------------\n"
 
-        # Get going date
-        going_date = driver.find_element_by_id("fechaSeleccionada0").get_attribute(
-            "value"
-        )
-        # Get going trains
-        output += "{place} ({date}):\n".format(place=origin, date=going_date)
-        output += get_trains(driver, type_of_train)
-
-        if return_trains is True:
-            # Select return tab
-            a = driver.find_elements_by_css_selector(".hidden-xs.vistaPc")
-            driver.execute_script("arguments[0].click();", a[1])
-
-            # Get return date
-            return_date = driver.find_element_by_id("fechaSeleccionada1").get_attribute(
+            # Get going date
+            going_date = driver.find_element_by_id("fechaSeleccionada0").get_attribute(
                 "value"
             )
+            # Get going trains
+            output += "{place} ({date}):\n".format(place=origin, date=going_date)
+            output += get_trains(driver, type_of_train)
 
-            output += "\n\n---------------Return train---------------\n"
-            # Check if there's return trains
-            aux = driver.find_element_by_id("tab-mensaje_contenido").text
-            if "no se encuentra disponible" not in aux:
+            if return_trains is True:
+                # Select return tab
+                a = driver.find_elements_by_css_selector(".hidden-xs.vistaPc")
+                driver.execute_script("arguments[0].click();", a[1])
 
-                # Get return trains
-                output += "{place} ({date}):\n".format(
-                    place=destination, date=return_date
-                )
-                output += get_trains(driver, type_of_train)
-            else:
-                output += "No trains available\n"
-    return output
+                # Get return date
+                return_date = driver.find_element_by_id(
+                    "fechaSeleccionada1"
+                ).get_attribute("value")
+
+                output += "\n\n---------------Return train---------------\n"
+                # Check if there's return trains
+                aux = driver.find_element_by_id("tab-mensaje_contenido").text
+                if "no se encuentra disponible" not in aux:
+
+                    # Get return trains
+                    output += "{place} ({date}):\n".format(
+                        place=destination, date=return_date
+                    )
+                    output += get_trains(driver, type_of_train)
+                else:
+                    output += "No trains available\n"
+        return output
+    except Exception as error:
+        print("Error getting results: {}".format(error))
+        sys.exit()
 
 
 def make_search(
@@ -316,40 +355,33 @@ def make_search(
     return_date: str = None,
     train_type: str = None,
 ):
-    try:
 
-        # Setup driver
-        driver = setup_driver()
+    # Setup driver
+    driver = setup_driver()
 
-        # Process going date
-        going_date = process_date(going_date)
+    # Process going date
+    going_date = process_date(going_date)
 
-        # Process return date
-        return_date = process_date(return_date)
+    # Process return date
+    return_date = process_date(return_date)
 
-        # Set origin
-        set_origin(driver, origin)
+    # Set origin
+    set_origin(driver, origin)
 
-        # Set destination
-        set_destination(driver, destination)
+    # Set destination
+    set_destination(driver, destination)
 
-        # Select origin date
-        select_origin_date(driver, going_date)
+    # Select origin date
+    select_origin_date(driver, going_date)
 
-        aux = False
-        if return_date is not None:
-            difference_days = get_difference_days(going_date, return_date)
-            select_destination_date(driver, difference_days)
-            aux = True
+    aux = False
+    if return_date is not None:
+        difference_days = get_difference_days(going_date, return_date)
+        select_destination_date(driver, difference_days)
+        aux = True
 
-        # Click search button
-        submit_search(driver)
-
-    except Exception as error:
-        print("Error: {}".format(error))
-        logging.error("Error at searching")
-        driver.quit()
-        return
+    # Click search button
+    submit_search(driver)
 
     # Get results
     sleep(5)
@@ -387,7 +419,7 @@ def main():
     if sys.argv[1] == "-h":
         # Print help
         print_help()
-        return
+        sys.exit()
 
     if sys.argv[1] == "-i":  # Interactive mode
         print("Insert origin")
