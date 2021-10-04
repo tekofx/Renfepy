@@ -147,7 +147,7 @@ class renfe_search:
         output = [going_day_rest, going_day_sum, return_day_rest, return_day_sum]
         return output
 
-    def select_origin_date(self, going_date):
+    def select_return_date(self, going_date):
         try:
             going_day_sum = self.get_dates_buttons()[1]
             selected_origin_date = self.get_selected_origin_date()
@@ -170,7 +170,7 @@ class renfe_search:
                 selected_origin_month = selected_origin_date[1]
                 selected_origin_year = selected_origin_date[2]
         except Exception as error:
-            print("Error selecting origin date: {}".format(error))
+            print("Error selecting going date: {}".format(error))
             self.driver.quit()
 
     def process_date(self, date: str = None):
@@ -205,14 +205,14 @@ class renfe_search:
         except Exception as error:
             print("Error getting difference days: {}".format(error))
 
-    def select_destination_date(self, difference_days):
+    def select_return_date(self, difference_days):
         try:
 
             return_day_sum = self.get_dates_buttons()[3]
             for i in range(difference_days):
                 self.driver.execute_script("arguments[0].click();", return_day_sum)
         except Exception as error:
-            print("Error selecting destination date: {}".format(error))
+            print("Error selecting return date: {}".format(error))
             self.driver.quit()
 
     def submit_search(self):
@@ -367,12 +367,12 @@ class renfe_search:
         self.set_destination(destination)
 
         # Select origin date
-        self.select_origin_date(going_date)
+        self.select_return_date(going_date)
 
         aux = False
         if return_date is not None:
             difference_days = self.get_difference_days(going_date, return_date)
-            self.select_destination_date(difference_days)
+            self.select_return_date(difference_days)
             aux = True
 
         # Click search button
