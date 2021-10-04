@@ -224,7 +224,7 @@ class Renfe_search:
             self.driver.execute_script("arguments[0].click();", submit_button)
         except Exception as error:
             print("Error submitting search: {}".format(error))
-            # self.driver.quit()
+            self.driver.quit()
 
     def get_trains(self, type_of_train: str = None):
         output = ""
