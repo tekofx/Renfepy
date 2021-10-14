@@ -5,6 +5,7 @@ import datetime
 from prettytable import PrettyTable
 import logging
 import sys
+import os
 
 import selenium
 
@@ -385,9 +386,24 @@ class Renfe_search:
             results = self.get_results(aux)
         else:
             results = self.get_results(aux, train_type)
-        self.driver.quit()
+        self.quit_and_kill_driver()
 
         return results
+
+    def quit_and_kill_driver(self):
+        self.driver.quit()
+        try:
+            pid = True
+            while pid:
+                pid = os.waitpid(-1, os.WNOHANG)
+                try:
+                    if pid[0] == 0:
+                        pid = False
+                except:
+                    pass
+
+        except ChildProcessError:
+            pass
 
 
 class Main:
