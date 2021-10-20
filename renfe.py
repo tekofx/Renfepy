@@ -6,7 +6,6 @@ from prettytable import PrettyTable
 import logging
 import sys
 import os
-
 import selenium
 
 # Config logging
@@ -229,13 +228,21 @@ class Renfe_search:
             self.driver.quit()
 
     def get_trains(self, type_of_train: str = None):
-        output = ""
-        fields = ["Train Type", "Departure", "Arrival", "Duration", "Price"]
-        t = PrettyTable(fields)
+        """Gets a list of trains
+
+        Args:
+            type_of_train (str, optional): Type of train to get. Defaults to None.
+
+        Returns:
+            list: contains sublists containing Train Type, Departure, Arrival, Duration, Price
+        """
+
+        output = []
 
         trains = self.driver.find_elements_by_class_name("trayectoRow")
         # TODO: make progress bar increment here
         for train in trains:
+            data = []
 
             # Train type
             train_type = train.find_elements_by_css_selector(".displace-text")[2].text
@@ -280,15 +287,30 @@ class Renfe_search:
                     type_of_train is not None
                     and train_type.lower() == type_of_train.lower()
                 ):
-                    t.add_row(data)
+                    output.append(data)
                 if type_of_train is None:
-                    t.add_row(data)
+                    output.append(data)
 
-        table = str(t)
-        output += table
         return output
 
-    def get_results(self, return_trains: bool, type_of_train: str = None):
+    def get_trains_table_str(self, trains: list):
+        """Gets an str table from a list of trains
+
+        Args:
+            trains (list): trains to show in a table
+
+        Returns:
+            str: table with data of trains
+        """
+        fields = ["Train Type", "Departure", "Arrival", "Duration", "Price"]
+
+        t = PrettyTable(fields)
+        for x in trains:
+            t.add_row(x)
+
+        return str(t)
+
+    def get_results_table(self, return_trains: bool, type_of_train: str = None):
         """gets a table with the trains available
 
         Returns:
@@ -318,7 +340,8 @@ class Renfe_search:
                 ).get_attribute("value")
                 # Get going trains
                 output += "{place} ({date}):\n".format(place=origin, date=going_date)
-                output += self.get_trains(type_of_train)
+                trains = self.get_trains(type_of_train)
+                output += self.get_trains_table_str(trains)
 
                 if return_trains is True:
                     # Select return tab
@@ -339,7 +362,8 @@ class Renfe_search:
                         output += "{place} ({date}):\n".format(
                             place=destination, date=return_date
                         )
-                        output += self.get_trains(type_of_train)
+                        trains = self.get_trains(type_of_train)
+                        output += self.get_trains_table_str(trains)
                     else:
                         output += "No trains available\n"
             return output
@@ -355,6 +379,18 @@ class Renfe_search:
         return_date: str = None,
         train_type: str = None,
     ):
+        """Makes a search
+
+        Args:
+            origin (str): origin place
+            destination (str): destination place
+            going_date (str): going date
+            return_date (str, optional): return date. Defaults to None.
+            train_type (str, optional): train type. Defaults to None.
+
+        Returns:
+            str: table with trains
+        """
 
         # Process going date
         going_date = self.process_date(going_date)
@@ -383,9 +419,9 @@ class Renfe_search:
         # Get results
         sleep(5)
         if train_type is None:
-            results = self.get_results(aux)
+            results = self.get_results_table(aux)
         else:
-            results = self.get_results(aux, train_type)
+            results = self.get_results_table(aux, train_type)
         self.quit_and_kill_driver()
 
         return results
@@ -425,71 +461,74 @@ class Main:
         print(output)
 
     if len(sys.argv) == 1:
-        print("Error: Not search specified")
-
-    if sys.argv[1] == "-h":
-        # Print help
         print_help()
-        sys.exit()
+    else:
+        if sys.argv[1] == "-h":
+            # Print help
+            print_help()
+            sys.exit()
 
-    if sys.argv[1] == "-i":  # Interactive mode
-        print("Insert origin")
-        origin = input()
+        if sys.argv[1] == "-i":  # Interactive mode
+            print("Insert origin")
+            origin = input()
 
-        print("Insert destination:")
-        destination = input()
+            print("Insert destination:")
+            destination = input()
 
-        print("Insert departure date as d-mm-yyyy")
-        going_date = input()
+            print("Insert departure date as d-mm-yyyy")
+            going_date = input()
 
-        print("Insert return date as d-mm-yyyy or hit enter to leave it blank")
-        return_date = input()
-        if return_date == "":
+            print("Insert return date as d-mm-yyyy or hit enter to leave it blank")
+            return_date = input()
+            if return_date == "":
+                return_date = None
+
+            print("Insert train type or hit enter to leave it blank")
+            train_type = input()
+            if train_type == "":
+                train_type = None
+
+        # Specified return date
+        if "-r" in sys.argv:
+            var = sys.argv.index("-r")
+            return_date = sys.argv[var + 1]
+        elif "--return" in sys.argv:
+            var = sys.argv.index("--return")
+            return_date = sys.argv[var + 1]
+        else:
             return_date = None
 
-        print("Insert train type or hit enter to leave it blank")
-        train_type = input()
-        if train_type == "":
+        # Specified train type
+        if "-t" in sys.argv:
+            var = sys.argv.index("-t")
+            train_type = sys.argv[var + 1]
+        elif "-type" in sys.argv:
+            var = sys.argv.index("-t")
+            train_type = sys.argv[var + 1]
+        else:
             train_type = None
 
-    if "-r" in sys.argv:
-        var = sys.argv.index("-r")
-        return_date = sys.argv[var + 1]
-    elif "--return" in sys.argv:
-        var = sys.argv.index("--return")
-        return_date = sys.argv[var + 1]
-    else:
-        return_date = None
+        origin = sys.argv[1]
+        destination = sys.argv[2]
+        going_date = sys.argv[3]
 
-    if "-t" in sys.argv:
-        var = sys.argv.index("-t")
-        train_type = sys.argv[var + 1]
-    elif "-type" in sys.argv:
-        var = sys.argv.index("-t")
-        train_type = sys.argv[var + 1]
-    else:
-        train_type = None
+        print("Making search...")
 
-    origin = sys.argv[1]
-    destination = sys.argv[2]
-    going_date = sys.argv[3]
+        # Specified to see GUI
+        if "--gui" in sys.argv or "-g" in sys.argv:
+            rf = Renfe_search(True)
+        else:
+            rf = Renfe_search(False)
 
-    print("Making search...")
+        output = rf.make_search(
+            origin,
+            destination,
+            going_date,
+            return_date,
+            train_type,
+        )
 
-    if "--gui" in sys.argv or "-g" in sys.argv:
-        rf = Renfe_search(True)
-    else:
-        rf = Renfe_search(False)
-
-    output = rf.make_search(
-        origin,
-        destination,
-        going_date,
-        return_date,
-        train_type,
-    )
-
-    print(output)
+        print(output)
 
 
 if len(sys.argv) > 1:
