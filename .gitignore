@@ -1,2 +1,4 @@
 logs
 *.pyc
+*.tar.gz
+MANIFEST
