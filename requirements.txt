@@ -1,3 +1,4 @@
 selenium
 prettytable
 tqdm
+webdrive-manager
