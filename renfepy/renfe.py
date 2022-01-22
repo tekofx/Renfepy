@@ -74,7 +74,7 @@ class Renfe_search:
             log.info("Selected origin {origin} from origin list".format(origin=origin))
 
         except Exception as error:
-            print("Error setting origin: {}".format(error))
+            log.error("Error setting origin: {}".format(error))
             # self.driver.quit()
 
     def set_destination(self, destination: str):
@@ -112,7 +112,7 @@ class Renfe_search:
                 )
             )
         except Exception as error:
-            print("Error at setting destination: {}".format(error))
+            log.error("Error at setting destination: {}".format(error))
             self.driver.quit()
 
     def get_selected_origin_date(self):
@@ -163,7 +163,7 @@ class Renfe_search:
                 selected_origin_month = selected_origin_date[1]
                 selected_origin_year = selected_origin_date[2]
         except Exception as error:
-            print("Error selecting going date: {}".format(error))
+            log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
 
     def process_date(self, date: str = None):
@@ -179,7 +179,7 @@ class Renfe_search:
             output = list(map(int, str_date_list))
             return output
         except Exception as error:
-            print("Error at processing date: {}".format(error))
+            log.error("Error at processing date: {}".format(error))
 
     def get_difference_days(self, going_date: str, return_date):
         try:
@@ -196,7 +196,7 @@ class Renfe_search:
             difference_days = (return_date - going_date).days
             return difference_days
         except Exception as error:
-            print("Error getting difference days: {}".format(error))
+            log.error("Error getting difference days: {}".format(error))
 
     def select_return_date(self, difference_days):
         try:
@@ -205,7 +205,7 @@ class Renfe_search:
             for i in range(difference_days):
                 self.driver.execute_script("arguments[0].click();", return_day_sum)
         except Exception as error:
-            print("Error selecting return date: {}".format(error))
+            log.error("Error selecting return date: {}".format(error))
             self.driver.quit()
 
     def submit_search(self):
@@ -217,7 +217,7 @@ class Renfe_search:
             )
             self.driver.execute_script("arguments[0].click();", submit_button)
         except Exception as error:
-            print("Error submitting search: {}".format(error))
+            log.error("Error submitting search: {}".format(error))
             self.driver.quit()
 
     def get_trains(self, type_of_train: str = None):
@@ -362,7 +362,7 @@ class Renfe_search:
                         output += "No trains available\n"
             return output
         except Exception as error:
-            print("Error getting results: {}".format(error))
+            log.error("Error getting results: {}".format(error))
             return
 
     def make_search(
