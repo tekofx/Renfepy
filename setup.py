@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name="renfepy",  # How you named your package folder (MyLib)
     packages=["renfepy"],  # Chose the same as "name"
-    version="1.5.2",  # Start with a small number and increase it with every change you make
+    version="1.5.3",  # Start with a small number and increase it with every change you make
     license="MIT",  # Chose a license from here: https://help.github.com/articles/licensing-a-repository
     description="A library to search for trains in renfe.com",  # Give a short description about your library
     author="Teko",  # Type in your name
