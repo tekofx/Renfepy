@@ -7,6 +7,10 @@ import logging
 import sys
 import os
 import selenium
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 
 # Config logging
 logging.basicConfig(
@@ -33,15 +37,15 @@ class Renfe_search:
 
         try:
             options = webdriver.ChromeOptions()
+            s = Service(ChromeDriverManager().install())
 
             if not gui:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--headless")
-            chrome_driver_binary = "/usr/bin/chromedriver"
 
             # Get html
-            driver = webdriver.Chrome(chrome_driver_binary, options=options)
+            driver = webdriver.Chrome(service=s, options=options)
             html = "https://www.renfe.com/es/es"
             driver.get(html)
 
@@ -58,15 +62,15 @@ class Renfe_search:
         try:
             sleep(1)
             # Write the origin
-            origin_text_field = self.driver.find_elements_by_id("origin")
+            origin_text_field = self.driver.find_elements(By.ID, "origin")
             origin_text_field[1].send_keys(origin)
             logging.info("Written in origin search bar: {origin}".format(origin=origin))
 
             # Select origin from list
-            origins_list = self.driver.find_elements_by_id("awesomplete_list_2_item_0")
+            origins_list = self.driver.find_elements(By.ID, "awesomplete_list_2_item_0")
             if len(origins_list) == 0:
-                origins_list = self.driver.find_elements_by_id(
-                    "awesomplete_list_1_item_0"
+                origins_list = self.driver.find_elements(
+                    By.ID, "awesomplete_list_1_item_0"
                 )
 
             # FIXME: Sometimes gives error
@@ -93,7 +97,7 @@ class Renfe_search:
         """
         try:
             # Write the destination in the search box
-            destination_text_field = self.driver.find_elements_by_id("destination")
+            destination_text_field = self.driver.find_elements(By.ID, "destination")
             destination_text_field[1].send_keys(destination)
             logging.info(
                 "Written in destination search bar: {destination}".format(
@@ -102,15 +106,15 @@ class Renfe_search:
             )
 
             # Select origing from list
-            destinations_list = self.driver.find_elements_by_id(
-                "awesomplete_list_1_item_0"
+            destinations_list = self.driver.find_elements(
+                By.ID, "awesomplete_list_1_item_0"
             )
             if (
                 destination
                 not in destinations_list[0].get_attribute("innerHTML").lower()
             ):
-                destinations_list = self.driver.find_elements_by_id(
-                    "awesomplete_list_2_item_0"
+                destinations_list = self.driver.find_elements(
+                    By.ID, "awesomplete_list_2_item_0"
                 )
 
             self.driver.execute_script("arguments[0].click();", destinations_list[0])
@@ -125,7 +129,7 @@ class Renfe_search:
 
     def get_selected_origin_date(self):
         # Get selected dates
-        date = self.driver.find_element_by_id("daterange")
+        date = self.driver.find_element(By.ID, "daterange")
         selected_going_day = int(date.get_attribute("default-date-from")[8:][:-15])
         selected_going_month = int(date.get_attribute("default-date-from")[5:][:-18])
         selected_origin_year = int(date.get_attribute("default-date-from")[:-21])
@@ -134,7 +138,7 @@ class Renfe_search:
 
     def get_dates_buttons(self):
         # Get buttons to change dates
-        buttons = self.driver.find_elements_by_class_name("rf-daterange__btn")
+        buttons = self.driver.find_elements(By.CLASS_NAME, "rf-daterange__btn")
         for el in buttons:
             if "Restar día fecha ida" in el.get_attribute("aria-label"):
                 going_day_rest = el
@@ -219,8 +223,9 @@ class Renfe_search:
     def submit_search(self):
         # Introduce search
         try:
-            submit_button = self.driver.find_element_by_css_selector(
-                ".mdc-button.mdc-button--touch.mdc-button--unelevated.rf-button.rf-button--special.mdc-ripple-upgraded"
+            submit_button = self.driver.find_element(
+                By.CSS_SELECTOR,
+                ".mdc-button.mdc-button--touch.mdc-button--unelevated.rf-button.rf-button--special.mdc-ripple-upgraded",
             )
             self.driver.execute_script("arguments[0].click();", submit_button)
         except Exception as error:
@@ -239,33 +244,34 @@ class Renfe_search:
 
         output = []
 
-        trains = self.driver.find_elements_by_class_name("trayectoRow")
+        trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
         # TODO: make progress bar increment here
         for train in trains:
             data = []
 
             # Train type
-            train_type = train.find_elements_by_css_selector(".displace-text")[2].text
+            train_type = train.find_elements(By.CSS_SELECTOR, ".displace-text")[2].text
 
             # Departure
-            departure = train.find_element_by_css_selector(
-                ".booking-list-element-big-font.salida.displace-text-xs"
+            departure = train.find_element(
+                By.CSS_SELECTOR,
+                ".booking-list-element-big-font.salida.displace-text-xs",
             ).text
 
             # Arrival
-            arrival = train.find_element_by_css_selector(
-                ".booking-list-element-big-font.llegada"
+            arrival = train.find_element(
+                By.CSS_SELECTOR, ".booking-list-element-big-font.llegada"
             ).text
 
             # Duration
-            duration = train.find_element_by_css_selector(
-                ".purple-font.displace-text.duracion.hidden-xs"
+            duration = train.find_element(
+                By.CSS_SELECTOR, ".purple-font.displace-text.duracion.hidden-xs"
             ).text
 
             # Prices
 
-            prices_list = train.find_element_by_class_name(
-                "booking-list-element-price-complete"
+            prices_list = train.find_element(
+                By.CLASS_NAME, "booking-list-element-price-complete"
             ).text
 
             if prices_list == "Tren Completo":
@@ -276,8 +282,8 @@ class Renfe_search:
 
             else:
                 prices = []
-                for x in train.find_elements_by_css_selector(
-                    ".precio.booking-list-element-big-font"
+                for x in train.find_elements(
+                    By.CSS_SELECTOR, ".precio.booking-list-element-big-font"
                 ):
                     prices.append(x.text)
 
@@ -318,14 +324,14 @@ class Renfe_search:
         """
         try:
             output = ""
-            results = self.driver.find_element_by_id("tab-mensaje_contenido")
+            results = self.driver.find_element(By.ID, "tab-mensaje_contenido")
             message = results.get_attribute("innerHTML")
             if "no se encuentra disponible" in message:
                 output += "No trains available\n"
                 logging.info("Theres no trains available")
 
             else:
-                places = self.driver.find_elements_by_css_selector("span.h3")
+                places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
 
                 # Origin
                 origin = places[0].text
@@ -335,8 +341,8 @@ class Renfe_search:
                 output += "\n---------------Going train---------------\n"
 
                 # Get going date
-                going_date = self.driver.find_element_by_id(
-                    "fechaSeleccionada0"
+                going_date = self.driver.find_element(
+                    By.ID, "fechaSeleccionada0"
                 ).get_attribute("value")
                 # Get going trains
                 output += "{place} ({date}):\n".format(place=origin, date=going_date)
@@ -345,17 +351,17 @@ class Renfe_search:
 
                 if return_trains is True:
                     # Select return tab
-                    a = self.driver.find_elements_by_css_selector(".hidden-xs.vistaPc")
+                    a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
                     self.driver.execute_script("arguments[0].click();", a[1])
 
                     # Get return date
-                    return_date = self.driver.find_element_by_id(
-                        "fechaSeleccionada1"
+                    return_date = self.driver.find_element(
+                        By.ID, "fechaSeleccionada1"
                     ).get_attribute("value")
 
                     output += "\n\n---------------Return train---------------\n"
                     # Check if there's return trains
-                    aux = self.driver.find_element_by_id("tab-mensaje_contenido").text
+                    aux = self.driver.find_element(By.ID, "tab-mensaje_contenido").text
                     if "no se encuentra disponible" not in aux:
 
                         # Get return trains
