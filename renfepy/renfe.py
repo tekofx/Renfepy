@@ -9,6 +9,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from renfepy.logger import log
 
 # Config logging
@@ -33,6 +35,7 @@ class Renfe_search:
             self.driver = webdriver.Chrome(service=s, options=options)
             html = "https://www.renfe.com/es/es"
             self.driver.get(html)
+            self.wait = WebDriverWait(self.driver, 60)
 
         except Exception as error:
             log.error("Error at setting driver: {}".format(error))
@@ -62,7 +65,6 @@ class Renfe_search:
                 origins_list[0].click()
             except:
                 log.error("error when selecting origin from panel")
-                sleep(10000)
                 log.info(
                     "Selected origin {origin} from origin list".format(origin=origin)
                 )
@@ -211,6 +213,7 @@ class Renfe_search:
                 ".mdc-button.mdc-button--touch.mdc-button--unelevated.rf-button.rf-button--special.mdc-ripple-upgraded",
             )
             self.driver.execute_script("arguments[0].click();", submit_button)
+            log.info("Pressed submit button")
         except Exception as error:
             log.error("Error submitting search: {}".format(error))
             self.driver.quit()
@@ -225,6 +228,10 @@ class Renfe_search:
             list: contains sublists containing Train Type, Departure, Arrival, Duration, Price
         """
 
+        self.wait.until(
+            EC.presence_of_all_elements_located((By.CLASS_NAME, "trayectoRow"))
+        )
+
         output = []
 
         trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
@@ -233,26 +240,29 @@ class Renfe_search:
             data = []
 
             # Train type
-            train_type = train.find_elements(By.CSS_SELECTOR, ".displace-text")[2].text
+            train_type = train.find_elements(By.CSS_SELECTOR, "displace-text")[2].text
+            log.info("Train type: {}".format(train_type))
 
             # Departure
             departure = train.find_element(
                 By.CSS_SELECTOR,
-                ".booking-list-element-big-font.salida.displace-text-xs",
+                "booking-list-element-big-font.salida.displace-text-xs",
             ).text
+            log.info("Departure: {}".format(departure))
 
             # Arrival
             arrival = train.find_element(
-                By.CSS_SELECTOR, ".booking-list-element-big-font.llegada"
+                By.CSS_SELECTOR, "booking-list-element-big-font.llegada"
             ).text
+            log.info("Arrival: {}".format(arrival))
 
             # Duration
             duration = train.find_element(
-                By.CSS_SELECTOR, ".purple-font.displace-text.duracion.hidden-xs"
+                By.CSS_SELECTOR, "purple-font.displace-text.duracion.hidden-xs"
             ).text
+            log.info("Duration: {}".format(duration))
 
             # Prices
-
             prices_list = train.find_element(
                 By.CLASS_NAME, "booking-list-element-price-complete"
             ).text
@@ -269,6 +279,7 @@ class Renfe_search:
                     By.CSS_SELECTOR, ".precio.booking-list-element-big-font"
                 ):
                     prices.append(x.text)
+            log.info("Prices: {}".format(prices))
 
             data = [train_type, departure, arrival, duration, prices]
             if duration != "":
@@ -406,7 +417,6 @@ class Renfe_search:
         self.submit_search()
 
         # Get results
-        sleep(5)
         if train_type is None:
             results = self.get_results_table(aux)
         else:
