@@ -4,30 +4,25 @@ from time import sleep
 import datetime
 from prettytable import PrettyTable
 import logging
-import sys
 import os
-import selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from logger import log
 
 # Config logging
-logging.basicConfig(
-    filename="/tmp/renfe_search_log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    level=logging.INFO,
-)
-log = logging.getLogger(__name__)
+log = log.getLogger(__name__)
 
 
 class Renfe_search:
     def __init__(self, gui: bool):
         try:
+
             options = webdriver.ChromeOptions()
-            s = Service(ChromeDriverManager().install())
+            s = Service(
+                ChromeDriverManager().install(),
+            )
 
             if not gui:
                 options.add_argument("--no-sandbox")
@@ -35,13 +30,13 @@ class Renfe_search:
                 options.add_argument("--headless")
 
             # Get html
-            driver = webdriver.Chrome(service=s, options=options)
+            self.driver = webdriver.Chrome(service=s, options=options)
             html = "https://www.renfe.com/es/es"
-            driver.get(html)
+            self.driver.get(html)
 
-            self.driver = driver
         except Exception as error:
             log.error("Error at setting driver: {}".format(error))
+            print("An error ocurred, check /tmp/renfe_search.log")
 
     def set_origin(self, origin: str):
         """Sets the origin of the train
