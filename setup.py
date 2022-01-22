@@ -30,7 +30,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "renfepy=renfepy.__main__",
+            "renfepy=renfepy.__main__:main",
         ]
     },
 )
