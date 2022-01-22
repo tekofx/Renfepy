@@ -63,15 +63,14 @@ class Renfe_search:
                     By.ID, "awesomplete_list_1_item_0"
                 )
 
-            # FIXME: Sometimes gives error
-            for x in origins_list:
-                log.info("clicked " + x.text)
             try:
                 origins_list[0].click()
             except:
                 log.error("error when selecting origin from panel")
-                sys.exit()
-            log.info("Selected origin {origin} from origin list".format(origin=origin))
+                sleep(10000)
+                log.info(
+                    "Selected origin {origin} from origin list".format(origin=origin)
+                )
 
         except Exception as error:
             log.error("Error setting origin: {}".format(error))
@@ -94,18 +93,19 @@ class Renfe_search:
             )
 
             # Select origing from list
-            destinations_list = self.driver.find_elements(
-                By.ID, "awesomplete_list_1_item_0"
+            destination_list_item = self.driver.find_element(
+                By.ID, "awesomplete_list_2_item_0"
             )
+
             if (
-                destination
-                not in destinations_list[0].get_attribute("innerHTML").lower()
+                destination.lower()
+                not in destination_list_item.get_attribute("innerHTML").lower()
             ):
-                destinations_list = self.driver.find_elements(
-                    By.ID, "awesomplete_list_2_item_0"
+                destination_list_item = self.driver.find_element(
+                    By.ID, "awesomplete_list_1_item_0"
                 )
 
-            self.driver.execute_script("arguments[0].click();", destinations_list[0])
+            self.driver.execute_script("arguments[0].click();", destination_list_item)
             log.info(
                 "Selected destination {destination} from destination list".format(
                     destination=destination
