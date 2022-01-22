@@ -1,4 +1,4 @@
 selenium
 prettytable
 tqdm
-webdrive-manager
+webdriver-manager
