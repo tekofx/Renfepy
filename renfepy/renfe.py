@@ -20,21 +20,11 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
     level=logging.INFO,
 )
+log = logging.getLogger(__name__)
 
 
 class Renfe_search:
     def __init__(self, gui: bool):
-
-        self.driver = self.setup_driver(gui)
-        pass
-
-    def setup_driver(self, gui: bool):
-        """Creates a selenium driver
-
-        Returns:
-            selenium.webdriver.chrome.webdriver.WebDriver: driver
-        """
-
         try:
             options = webdriver.ChromeOptions()
             s = Service(ChromeDriverManager().install())
@@ -49,9 +39,9 @@ class Renfe_search:
             html = "https://www.renfe.com/es/es"
             driver.get(html)
 
-            return driver
+            self.driver = driver
         except Exception as error:
-            print("Error at setting driver: {}".format(error))
+            log.error("Error at setting driver: {}".format(error))
 
     def set_origin(self, origin: str):
         """Sets the origin of the train
@@ -64,7 +54,7 @@ class Renfe_search:
             # Write the origin
             origin_text_field = self.driver.find_elements(By.ID, "origin")
             origin_text_field[1].send_keys(origin)
-            logging.info("Written in origin search bar: {origin}".format(origin=origin))
+            log.info("Written in origin search bar: {origin}".format(origin=origin))
 
             # Select origin from list
             origins_list = self.driver.find_elements(By.ID, "awesomplete_list_2_item_0")
@@ -75,15 +65,13 @@ class Renfe_search:
 
             # FIXME: Sometimes gives error
             for x in origins_list:
-                logging.info("clicked " + x.text)
+                log.info("clicked " + x.text)
             try:
                 origins_list[0].click()
             except:
-                logging.error("error when selecting origin from panel")
+                log.error("error when selecting origin from panel")
                 sys.exit()
-            logging.info(
-                "Selected origin {origin} from origin list".format(origin=origin)
-            )
+            log.info("Selected origin {origin} from origin list".format(origin=origin))
 
         except Exception as error:
             print("Error setting origin: {}".format(error))
@@ -99,7 +87,7 @@ class Renfe_search:
             # Write the destination in the search box
             destination_text_field = self.driver.find_elements(By.ID, "destination")
             destination_text_field[1].send_keys(destination)
-            logging.info(
+            log.info(
                 "Written in destination search bar: {destination}".format(
                     destination=destination
                 )
@@ -118,7 +106,7 @@ class Renfe_search:
                 )
 
             self.driver.execute_script("arguments[0].click();", destinations_list[0])
-            logging.info(
+            log.info(
                 "Selected destination {destination} from destination list".format(
                     destination=destination
                 )
@@ -328,7 +316,7 @@ class Renfe_search:
             message = results.get_attribute("innerHTML")
             if "no se encuentra disponible" in message:
                 output += "No trains available\n"
-                logging.info("Theres no trains available")
+                log.info("Theres no trains available")
 
             else:
                 places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
