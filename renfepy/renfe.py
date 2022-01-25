@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 from selenium import webdriver
 from time import sleep
 import datetime
@@ -12,6 +13,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from renfepy.logger import log
+import sys
+from rich.console import Console
+from rich.table import Table
 
 # Config logging
 log = log.getLogger(__name__)
@@ -21,25 +25,38 @@ class Renfe_search:
     def __init__(self, gui: bool):
         try:
 
+            # Setup options
             options = webdriver.ChromeOptions()
-            s = Service(
-                ChromeDriverManager().install(),
-            )
-
             if not gui:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--headless")
 
-            # Get html
+            # Setup driver
+            if not os.path.exists("/usr/bin/chromedriver"):
+                log.info("Using preinstalled chromedriver")
+
+                s = Service(
+                    ChromeDriverManager().install(),
+                )
+            else:
+                log.info("Using chromedriver from /usr/bin/chromedriver")
+
+                s = Service(
+                    executable_path="/usr/bin/chromedriver",
+                )
+
             self.driver = webdriver.Chrome(service=s, options=options)
-            html = "https://www.renfe.com/es/es"
-            self.driver.get(html)
-            self.wait = WebDriverWait(self.driver, 60)
 
         except Exception as error:
             log.error("Error at setting driver: {}".format(error))
             print("An error ocurred, check /tmp/renfe_search.log")
+            print("You can try to install chromedriver by yourself")
+            sys.exit()
+        else:
+            html = "https://www.renfe.com/es/es"
+            self.driver.get(html)
+            self.wait = WebDriverWait(self.driver, 60)
 
     def set_origin(self, origin: str):
         """Sets the origin of the train
@@ -218,14 +235,14 @@ class Renfe_search:
             log.error("Error submitting search: {}".format(error))
             self.driver.quit()
 
-    def get_trains(self, type_of_train: str = None):
+    def get_trains(self, type_of_train: str = None) -> list:
         """Gets a list of trains
 
         Args:
             type_of_train (str, optional): Type of train to get. Defaults to None.
 
         Returns:
-            list: contains sublists containing Train Type, Departure, Arrival, Duration, Price
+            list: contains dicts with the information of each train
         """
 
         self.wait.until(
@@ -233,63 +250,52 @@ class Renfe_search:
         )
 
         output = []
-
+        aux = {}
         trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
-        # TODO: make progress bar increment here
+
         for train in trains:
-            data = []
 
             # Train type
-            train_type = train.find_elements(By.CSS_SELECTOR, "displace-text")[2].text
+            train_type = train.find_elements(By.CSS_SELECTOR, ".displace-text")[2].text
             log.info("Train type: {}".format(train_type))
 
             # Departure
             departure = train.find_element(
                 By.CSS_SELECTOR,
-                "booking-list-element-big-font.salida.displace-text-xs",
+                ".booking-list-element-big-font.salida.displace-text-xs",
             ).text
             log.info("Departure: {}".format(departure))
 
             # Arrival
             arrival = train.find_element(
-                By.CSS_SELECTOR, "booking-list-element-big-font.llegada"
+                By.CSS_SELECTOR, ".booking-list-element-big-font.llegada"
             ).text
             log.info("Arrival: {}".format(arrival))
 
             # Duration
             duration = train.find_element(
-                By.CSS_SELECTOR, "purple-font.displace-text.duracion.hidden-xs"
+                By.CSS_SELECTOR, ".purple-font.displace-text.duracion.hidden-xs"
             ).text
             log.info("Duration: {}".format(duration))
 
             # Prices
-            prices_list = train.find_element(
-                By.CLASS_NAME, "booking-list-element-price-complete"
-            ).text
+            prices_list = train.find_elements(
+                By.CSS_SELECTOR, ".precio.booking-list-element-big-font"
+            )
+            prices = []
+            for x in prices_list:
+                prices.append(x.text)
+            log.info("Prices: {}".format(prices_list))
 
-            if prices_list == "Tren Completo":
-                prices = "Full train"
-
-            elif "no se encuentra disponible" in prices_list:
-                prices = "Train no available"
-
-            else:
-                prices = []
-                for x in train.find_elements(
-                    By.CSS_SELECTOR, ".precio.booking-list-element-big-font"
-                ):
-                    prices.append(x.text)
-            log.info("Prices: {}".format(prices))
-
-            data = [train_type, departure, arrival, duration, prices]
-            if duration != "":
-                if (
-                    type_of_train is not None
-                    and train_type.lower() == type_of_train.lower()
-                ):
-                    output.append(data)
-                if type_of_train is None:
-                    output.append(data)
+            aux = {
+                "train_type": train_type,
+                "departure": departure,
+                "arrival": arrival,
+                "duration": duration,
+                "prices": str(prices),
+            }
+            log.info("Train: {}".format(aux))
+            output.append(aux)
 
         return output
 
@@ -297,79 +303,30 @@ class Renfe_search:
         """Gets an str table from a list of trains
 
         Args:
-            trains (list): trains to show in a table
+            trains (list): containing dicts with the information of each train
 
         Returns:
             str: table with data of trains
         """
-        fields = ["Train Type", "Departure", "Arrival", "Duration", "Price"]
+        table = Table(title="a")
 
-        t = PrettyTable(fields)
-        for x in trains:
-            t.add_row(x)
+        table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
+        table.add_column("Arrival", justify="center", style="magenta")
+        table.add_column("Duration", justify="center", style="green")
+        table.add_column("Price", justify="center", style="green")
+        table.add_column("Train type", justify="center", style="green")
 
-        return str(t)
-
-    def get_results_table(self, return_trains: bool, type_of_train: str = None):
-        """gets a table with the trains available
-
-        Returns:
-            str: table with results
-        """
-        try:
-            output = ""
-            results = self.driver.find_element(By.ID, "tab-mensaje_contenido")
-            message = results.get_attribute("innerHTML")
-            if "no se encuentra disponible" in message:
-                output += "No trains available\n"
-                log.info("Theres no trains available")
-
-            else:
-                places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
-
-                # Origin
-                origin = places[0].text
-
-                # Destination
-                destination = places[2].text
-                output += "\n---------------Going train---------------\n"
-
-                # Get going date
-                going_date = self.driver.find_element(
-                    By.ID, "fechaSeleccionada0"
-                ).get_attribute("value")
-                # Get going trains
-                output += "{place} ({date}):\n".format(place=origin, date=going_date)
-                trains = self.get_trains(type_of_train)
-                output += self.get_trains_table_str(trains)
-
-                if return_trains is True:
-                    # Select return tab
-                    a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
-                    self.driver.execute_script("arguments[0].click();", a[1])
-
-                    # Get return date
-                    return_date = self.driver.find_element(
-                        By.ID, "fechaSeleccionada1"
-                    ).get_attribute("value")
-
-                    output += "\n\n---------------Return train---------------\n"
-                    # Check if there's return trains
-                    aux = self.driver.find_element(By.ID, "tab-mensaje_contenido").text
-                    if "no se encuentra disponible" not in aux:
-
-                        # Get return trains
-                        output += "{place} ({date}):\n".format(
-                            place=destination, date=return_date
-                        )
-                        trains = self.get_trains(type_of_train)
-                        output += self.get_trains_table_str(trains)
-                    else:
-                        output += "No trains available\n"
-            return output
-        except Exception as error:
-            log.error("Error getting results: {}".format(error))
-            return
+        for train in trains:
+            table.add_row(
+                train["departure"],
+                train["arrival"],
+                train["duration"],
+                train["prices"],
+                train["train_type"],
+            )
+        console = Console()
+        console.print(table)
+        return 0
 
     def make_search(
         self,
@@ -417,13 +374,12 @@ class Renfe_search:
         self.submit_search()
 
         # Get results
-        if train_type is None:
-            results = self.get_results_table(aux)
-        else:
-            results = self.get_results_table(aux, train_type)
+        trains = self.get_trains()
+        table = self.get_trains_table_str(trains)
+
         self.quit_and_kill_driver()
 
-        return results
+        return table
 
     def quit_and_kill_driver(self):
         self.driver.quit()
