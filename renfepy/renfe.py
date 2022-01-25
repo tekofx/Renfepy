@@ -3,8 +3,6 @@
 from selenium import webdriver
 from time import sleep
 import datetime
-from prettytable import PrettyTable
-import logging
 import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -235,11 +233,8 @@ class Renfe_search:
             log.error("Error submitting search: {}".format(error))
             self.driver.quit()
 
-    def get_trains(self, type_of_train: str = None) -> list:
+    def get_trains(self) -> list:
         """Gets a list of trains
-
-        Args:
-            type_of_train (str, optional): Type of train to get. Defaults to None.
 
         Returns:
             list: contains dicts with the information of each train
@@ -299,6 +294,36 @@ class Renfe_search:
 
         return output
 
+    def print_trains_table(self, trains: list):
+        """Prints a table with the information of each train
+
+        Args:
+            trains (list): containing dicts with the information of each train
+        """
+        places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
+
+        # Origin
+        origin = places[0].text
+
+        table = Table(title=origin)
+
+        table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
+        table.add_column("Arrival", justify="center", style="magenta")
+        table.add_column("Duration", justify="center", style="green")
+        table.add_column("Price", justify="center", style="green")
+        table.add_column("Train type", justify="center", style="green")
+
+        for train in trains:
+            table.add_row(
+                train["departure"],
+                train["arrival"],
+                train["duration"],
+                train["prices"],
+                train["train_type"],
+            )
+        console = Console()
+        console.print(table)
+
     def get_trains_table_str(self, trains: list):
         """Gets an str table from a list of trains
 
@@ -308,7 +333,12 @@ class Renfe_search:
         Returns:
             str: table with data of trains
         """
-        table = Table(title="a")
+        places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
+
+        # Origin
+        origin = places[0].text
+
+        table = Table(title=origin)
 
         table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
         table.add_column("Arrival", justify="center", style="magenta")
@@ -334,7 +364,6 @@ class Renfe_search:
         destination: str,
         going_date: str,
         return_date: str = None,
-        train_type: str = None,
     ):
         """Makes a search
 
@@ -375,11 +404,10 @@ class Renfe_search:
 
         # Get results
         trains = self.get_trains()
-        table = self.get_trains_table_str(trains)
 
         self.quit_and_kill_driver()
 
-        return table
+        return trains
 
     def quit_and_kill_driver(self):
         self.driver.quit()
