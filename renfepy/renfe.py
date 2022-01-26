@@ -319,40 +319,6 @@ class Renfe_search:
         console = Console()
         console.print(table)
 
-    def get_trains_table_str(self, trains: list):
-        """Gets an str table from a list of trains
-
-        Args:
-            trains (list): containing dicts with the information of each train
-
-        Returns:
-            str: table with data of trains
-        """
-        places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
-
-        # Origin
-        origin = places[0].text
-
-        table = Table(title=origin)
-
-        table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
-        table.add_column("Arrival", justify="center", style="magenta")
-        table.add_column("Duration", justify="center", style="green")
-        table.add_column("Price", justify="center", style="green")
-        table.add_column("Train type", justify="center", style="green")
-
-        for train in trains:
-            table.add_row(
-                train["departure"],
-                train["arrival"],
-                train["duration"],
-                train["prices"],
-                train["train_type"],
-            )
-        console = Console()
-        console.print(table)
-        return 0
-
     def make_search(
         self,
         origin: str,
