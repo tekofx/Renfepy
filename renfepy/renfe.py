@@ -10,20 +10,24 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from renfepy.logger import log
 import sys
 from rich.console import Console
 from rich.table import Table
 from rich.console import Console
 
+
+from renfepy.logger import log
+from renfepy.console import console
+
 # Config logging
 log = log.getLogger(__name__)
-console = Console()
 
 
 class Renfe_search:
-    def __init__(self, gui: bool):
+    def __init__(self, gui: bool, verbose: bool):
         try:
+
+            self.verbose = verbose
 
             # Setup options
             options = webdriver.ChromeOptions()
@@ -327,7 +331,7 @@ class Renfe_search:
         table.add_column("Train type", justify="center")
 
         for train in trains:
-            if train["prices"] == "No available":
+            if train["prices"] == "Not available":
                 style = "red"
             else:
                 style = None
@@ -371,24 +375,30 @@ class Renfe_search:
 
         # Set origin
         self.set_origin(origin)
+        self.print("Origin set")
 
         # Set destination
         self.set_destination(destination)
+        self.print("Destination set")
 
         # Select origin date
         self.select_going_date(going_date)
+        self.print("Selected going date")
 
         aux = False
         if return_date is not None:
             difference_days = self.get_difference_days(going_date, return_date)
             self.select_return_date(difference_days)
+            self.print("Selected return date")
             aux = True
 
         # Click search button
         self.submit_search()
+        self.print("Searching")
 
         # Get results for going trains
         going_trains = self.get_trains()
+        self.print("Getting going trains")
 
         if return_date != None:
             # Get results for return trains
@@ -402,6 +412,10 @@ class Renfe_search:
         self.quit_and_kill_driver()
 
         return going_trains, return_trains
+
+    def print(self, txt: str, style: str = None):
+        if self.verbose:
+            console.print(txt, style)
 
     def quit_and_kill_driver(self):
         self.driver.quit()

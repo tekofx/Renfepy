@@ -1,11 +1,10 @@
 from renfepy.renfe import Renfe_search
 import sys
 from renfepy.logger import log
-from rich.console import Console
+from renfepy.console import console
 
 
 class main:
-    console = Console()
 
     # Config logging
     log = log.getLogger(__name__)
@@ -35,10 +34,18 @@ class main:
             else:
                 return_date = None
 
+            # Set verbose
+            if "-v" in sys.argv:
+                verbose = True
+            elif "--verbose" in sys.argv:
+                verbose = True
+            else:
+                verbose = False
+
             origin = sys.argv[1]
             destination = sys.argv[2]
             going_date = sys.argv[3]
-            rf = Renfe_search(gui)
+            rf = Renfe_search(gui, verbose)
             going_trains, return_trains = rf.make_search(
                 origin, destination, going_date, return_date
             )
