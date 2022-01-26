@@ -18,7 +18,7 @@ class main:
 
         if len(sys.argv) < 4:
             console.print("Error: Data missing", style="bold red")
-            log.error("Not enough parameters")
+            log.error("Not enough data")
 
         else:
             with console.status("[bold green] Searching trains...") as status:
@@ -61,10 +61,10 @@ class main:
     def help(self):
         var = """
         Usage:
-        renfepy  ORIGIN DESTINATION GOING_DATE [PARAMETERS]
+            renfepy  ORIGIN DESTINATION GOING_DATE [PARAMETERS]
 
         Example:
-        renfepy  Madrid  Barcelona  30-1-2022
+            renfepy  Madrid  Barcelona  30-1-2022
         
         Parameters:
             -h, --help: Show this help
