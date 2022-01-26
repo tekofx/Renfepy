@@ -290,6 +290,9 @@ class Renfe_search:
             prices = []
             for x in prices_list:
                 prices.append(x.text)
+
+            if prices == []:
+                prices = "Not available"
             log.info("Prices: {}".format(prices_list))
 
             aux = {
@@ -314,20 +317,30 @@ class Renfe_search:
             return
         table = Table(title="Trains")
 
-        table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
-        table.add_column("Arrival", justify="center", style="magenta")
-        table.add_column("Duration", justify="center", style="green")
-        table.add_column("Price", justify="center", style="red")
-        table.add_column("Train type", justify="center", style="yellow")
+        table.add_column("Departure", justify="center", no_wrap=True)
+        table.add_column("Arrival", justify="center")
+        table.add_column("Duration", justify="center")
+        table.add_column(
+            "Price",
+            justify="center",
+        )
+        table.add_column("Train type", justify="center")
 
         for train in trains:
+            if train["prices"] == "No available":
+                style = "red"
+            else:
+                style = None
+
             table.add_row(
                 train["departure"],
                 train["arrival"],
                 train["duration"],
                 train["prices"],
                 train["train_type"],
+                style=style,
             )
+
         console = Console()
         console.print(table)
 
