@@ -62,6 +62,9 @@ class main:
         var = """
         Usage:
         renfepy  ORIGIN DESTINATION GOING_DATE [PARAMETERS]
+
+        Example:
+        renfepy  Madrid  Barcelona  30-1-2022
         
         Parameters:
             -h, --help: Show this help
