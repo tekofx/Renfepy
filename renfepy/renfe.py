@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from typing import Tuple
 from selenium import webdriver
 from time import sleep
 import datetime
@@ -64,8 +65,8 @@ class Renfe_search:
             self.driver.get(html)
             self.wait = WebDriverWait(self.driver, 60)
 
-    def set_origin(self, origin: str):
-        """Sets the origin of the train
+    def set_origin(self, origin: str) -> None:
+        """Writes in the origin search box
 
         Args:
             origin (str): of the train
@@ -96,8 +97,8 @@ class Renfe_search:
             log.error("Error setting origin: {}".format(error))
             # self.driver.quit()
 
-    def set_destination(self, destination: str):
-        """Sets destination of the train
+    def set_destination(self, destination: str) -> None:
+        """Writes in the destination search box
 
         Args:
             destination (str): of the train
@@ -135,7 +136,12 @@ class Renfe_search:
             log.error("Error at setting destination: {}".format(error))
             self.driver.quit()
 
-    def get_selected_origin_date(self):
+    def get_selected_origin_date(self) -> list:
+        """Gets the selected origin date
+
+        Returns:
+            list: containing day, month and year of the origin date
+        """
         # Get selected dates
         date = self.driver.find_element(By.ID, "daterange")
         selected_going_day = int(date.get_attribute("default-date-from")[8:][:-15])
@@ -144,7 +150,12 @@ class Renfe_search:
         date = [selected_going_day, selected_going_month, selected_origin_year]
         return date
 
-    def get_dates_buttons(self):
+    def get_dates_buttons(self) -> list:
+        """Gets the dates buttons to increase and decrease the date of the going and returning
+
+        Returns:
+            list: containing buttons decrease_going_date, increase_going_date, decrease_returning_date, increase_returning_date
+        """
         # Get buttons to change dates
         buttons = self.driver.find_elements(By.CLASS_NAME, "rf-daterange__btn")
         for el in buttons:
@@ -160,7 +171,12 @@ class Renfe_search:
         output = [going_day_rest, going_day_sum, return_day_rest, return_day_sum]
         return output
 
-    def select_going_date(self, going_date):
+    def select_going_date(self, going_date: list) -> None:
+        """Selects the going date
+
+        Args:
+            going_date (list): containing day, month and year of the going date
+        """
         try:
             going_day_sum = self.get_dates_buttons()[1]
             selected_origin_date = self.get_selected_origin_date()
@@ -186,11 +202,11 @@ class Renfe_search:
             log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
 
-    def process_date(self, date: str = None):
+    def process_date(self, date: str = None) -> list:
         """Gets a string date and transforms it into a int list
 
         Args:
-            date (str): [description]
+            date (str): with the format dd-mm-yyyy
         """
         try:
             if date is None:
@@ -201,7 +217,16 @@ class Renfe_search:
         except Exception as error:
             log.error("Error at processing date: {}".format(error))
 
-    def get_difference_days(self, going_date: str, return_date):
+    def get_difference_days(self, going_date: list, return_date: list) -> int:
+        """Calculates the difference between the going and return date
+
+        Args:
+            going_date (list): containing day, month and year of the going date
+            return_date (list): containing day, month and year of the return date
+
+        Returns:
+            int: days of difference between the going and return date
+        """
         try:
             going_day = int(going_date[0])
             going_month = int(going_date[1])
@@ -218,7 +243,13 @@ class Renfe_search:
         except Exception as error:
             log.error("Error getting difference days: {}".format(error))
 
-    def select_return_date(self, difference_days):
+    def select_return_date(self, difference_days: int) -> None:
+        """Selects the return date
+
+        Args:
+            difference_days (int): difference between the going and return date. This will be used to click
+                the buttons to increase the return date
+        """
         try:
 
             return_day_sum = self.get_dates_buttons()[3]
@@ -228,7 +259,8 @@ class Renfe_search:
             log.error("Error selecting return date: {}".format(error))
             self.driver.quit()
 
-    def submit_search(self):
+    def submit_search(self) -> None:
+        """Click on the submit button to search"""
         # Introduce search
         try:
             submit_button = self.driver.find_element(
@@ -241,7 +273,8 @@ class Renfe_search:
             log.error("Error submitting search: {}".format(error))
             self.driver.quit()
 
-    def click_return_button(self):
+    def click_return_button(self) -> None:
+        """Click on the return trains button"""
         self.driver.find_element(By.CSS_SELECTOR, ".li-trayecto").click()
 
     def get_trains(self) -> list:
@@ -354,8 +387,8 @@ class Renfe_search:
         destination: str,
         going_date: str,
         return_date: str = None,
-    ):
-        """Makes a search
+    ) -> Tuple[list, list]:
+        """Gets information about trains on a certain date, and if provided, the info about trains for a return date
 
         Args:
             origin (str): origin place
@@ -364,7 +397,8 @@ class Renfe_search:
             return_date (str, optional): return date. Defaults to None.
 
         Returns:
-            str: table with trains
+            Tuple[list, list]: each list contains dicts with the information of each train
+
         """
 
         # Process going date
@@ -414,10 +448,17 @@ class Renfe_search:
         return going_trains, return_trains
 
     def print(self, txt: str, style: str = None):
+        """Prints a text with a style
+
+        Args:
+            txt (str): text to print
+            style (str, optional):  styel to use. Defaults to None.
+        """
         if self.verbose:
             console.print(txt, style)
 
     def quit_and_kill_driver(self):
+        """Kills the driver"""
         self.driver.quit()
         try:
             pid = True
