@@ -14,9 +14,11 @@ from renfepy.logger import log
 import sys
 from rich.console import Console
 from rich.table import Table
+from rich.console import Console
 
 # Config logging
 log = log.getLogger(__name__)
+console = Console()
 
 
 class Renfe_search:
@@ -48,8 +50,10 @@ class Renfe_search:
 
         except Exception as error:
             log.error("Error at setting driver: {}".format(error))
-            print("An error ocurred, check /tmp/renfe_search.log")
-            print("You can try to install chromedriver by yourself")
+            console.print(
+                "An error ocurred, check /tmp/renfe_search.log", style="bold red"
+            )
+            console.print("You can try to install chromium by yourself")
             sys.exit()
         else:
             html = "https://www.renfe.com/es/es"
@@ -234,7 +238,7 @@ class Renfe_search:
             self.driver.quit()
 
     def click_return_button(self):
-        aux = self.driver.find_element(By.CSS_SELECTOR, ".li-trayecto").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".li-trayecto").click()
 
     def get_trains(self) -> list:
         """Gets a list of trains
@@ -242,7 +246,7 @@ class Renfe_search:
         Returns:
             list: contains dicts with the information of each train
         """
-
+        self.driver.execute_script("window.scrollTo(0, 100);")
         self.wait.until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, "trayectoRow"))
         )
@@ -377,7 +381,7 @@ class Renfe_search:
             # Get results for return trains
             a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
             self.driver.execute_script("arguments[0].click();", a[1])
-            sleep(0.5)
+            sleep(1)
             return_trains = self.get_trains()
         else:
             return_trains = None

@@ -16,7 +16,7 @@ class main:
         console.print("Error: Data missing", style="bold red")
         log.error("Not enough parameters")
     else:
-        with console.status("[bold green]Working on tasks...") as status:
+        with console.status("[bold green] Searching trains...") as status:
             if "-g" in sys.argv or "--gui" in sys.argv:
                 gui = True
                 log.info("GUI: True")
