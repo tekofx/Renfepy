@@ -233,6 +233,9 @@ class Renfe_search:
             log.error("Error submitting search: {}".format(error))
             self.driver.quit()
 
+    def click_return_button(self):
+        aux = self.driver.find_element(By.CSS_SELECTOR, ".li-trayecto").click()
+
     def get_trains(self) -> list:
         """Gets a list of trains
 
@@ -260,6 +263,9 @@ class Renfe_search:
                 ".booking-list-element-big-font.salida.displace-text-xs",
             ).text
             log.info("Departure: {}".format(departure))
+
+            if not departure:
+                continue
 
             # Arrival
             arrival = train.find_element(
@@ -300,6 +306,8 @@ class Renfe_search:
         Args:
             trains (list): containing dicts with the information of each train
         """
+        if trains is None:
+            return
         table = Table(title="Trains")
 
         table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
@@ -333,7 +341,6 @@ class Renfe_search:
             destination (str): destination place
             going_date (str): going date
             return_date (str, optional): return date. Defaults to None.
-            train_type (str, optional): train type. Defaults to None.
 
         Returns:
             str: table with trains
@@ -363,12 +370,21 @@ class Renfe_search:
         # Click search button
         self.submit_search()
 
-        # Get results
-        trains = self.get_trains()
+        # Get results for going trains
+        going_trains = self.get_trains()
+
+        if return_date != None:
+            # Get results for return trains
+            a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
+            self.driver.execute_script("arguments[0].click();", a[1])
+            sleep(0.1)
+            return_trains = self.get_trains()
+        else:
+            return_trains = None
 
         self.quit_and_kill_driver()
 
-        return trains
+        return going_trains, return_trains
 
     def quit_and_kill_driver(self):
         self.driver.quit()
