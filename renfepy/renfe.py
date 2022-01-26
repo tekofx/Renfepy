@@ -377,7 +377,7 @@ class Renfe_search:
             # Get results for return trains
             a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
             self.driver.execute_script("arguments[0].click();", a[1])
-            sleep(0.1)
+            sleep(0.5)
             return_trains = self.get_trains()
         else:
             return_trains = None
