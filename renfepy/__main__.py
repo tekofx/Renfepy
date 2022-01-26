@@ -26,9 +26,8 @@ class main:
         destination = sys.argv[2]
         going_date = sys.argv[3]
         rf = Renfe_search(gui)
-        search = rf.make_search(origin, destination, going_date)
-        rf.print_trains_table(search)
-        print(search)
+        trains = rf.make_search(origin, destination, going_date)
+        rf.print_trains_table(trains)
 
 
 if __name__ == "__main__":

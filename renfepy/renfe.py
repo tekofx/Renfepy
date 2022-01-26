@@ -300,18 +300,13 @@ class Renfe_search:
         Args:
             trains (list): containing dicts with the information of each train
         """
-        places = self.driver.find_elements(By.CSS_SELECTOR, "span.h3")
-
-        # Origin
-        origin = places[0].text
-
-        table = Table(title=origin)
+        table = Table(title="Trains")
 
         table.add_column("Departure", justify="center", style="cyan", no_wrap=True)
         table.add_column("Arrival", justify="center", style="magenta")
         table.add_column("Duration", justify="center", style="green")
-        table.add_column("Price", justify="center", style="green")
-        table.add_column("Train type", justify="center", style="green")
+        table.add_column("Price", justify="center", style="red")
+        table.add_column("Train type", justify="center", style="yellow")
 
         for train in trains:
             table.add_row(
