@@ -11,5 +11,7 @@
 
 ## Parameters
 -g, --gui: Show browser
+
 -r, --return: Set return date
--t, --type: Set type of train
+
+-v, --verbose: Show more information
