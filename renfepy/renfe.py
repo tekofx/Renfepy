@@ -87,11 +87,8 @@ class Renfe_search:
 
             try:
                 origins_list[0].click()
-            except:
-                log.error("error when selecting origin from panel")
-                log.info(
-                    "Selected origin {origin} from origin list".format(origin=origin)
-                )
+            except Exception as error:
+                log.error("error when selecting origin from panel: {}".format(error))
 
         except Exception as error:
             log.error("Error setting origin: {}".format(error))
@@ -467,8 +464,8 @@ class Renfe_search:
                 try:
                     if pid[0] == 0:
                         pid = False
-                except:
-                    pass
+                except Exception as e:
+                    log.error("Error killing driver: {}".format(e))
 
         except ChildProcessError:
             pass
