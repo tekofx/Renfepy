@@ -1,4 +1,4 @@
-from renfepy.renfe import Renfe_search
+from renfepy.renfe import renfe_search
 import sys
 from renfepy.logger import log
 from renfepy.console import console
@@ -21,7 +21,7 @@ class main:
             log.error("Not enough data")
 
         else:
-            with console.status("[bold green] Searching trains...") as status:
+            with console.status("[bold green] Searching trains..."):
                 if "-g" in sys.argv or "--gui" in sys.argv:
                     gui = True
                     log.info("GUI: True")
@@ -51,7 +51,7 @@ class main:
                 origin = sys.argv[1]
                 destination = sys.argv[2]
                 going_date = sys.argv[3]
-                rf = Renfe_search(gui, verbose)
+                rf = renfe_search(gui, verbose)
                 going_trains, return_trains = rf.make_search(
                     origin, destination, going_date, return_date
                 )

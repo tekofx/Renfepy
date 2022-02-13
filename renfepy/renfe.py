@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from types import NoneType
 from typing import Tuple
 from selenium import webdriver
 from time import sleep
@@ -22,9 +23,10 @@ from renfepy.console import console
 
 # Config logging
 log = log.getLogger(__name__)
+click = "arguments[0].click();"
 
 
-class Renfe_search:
+class renfe_search:
     def __init__(self, gui: bool, verbose: bool):
         try:
 
@@ -123,7 +125,7 @@ class Renfe_search:
                     By.ID, "awesomplete_list_1_item_0"
                 )
 
-            self.driver.execute_script("arguments[0].click();", destination_list_item)
+            self.driver.execute_script(click, destination_list_item)
             log.info(
                 "Selected destination {destination} from destination list".format(
                     destination=destination
@@ -189,7 +191,7 @@ class Renfe_search:
                 or selected_origin_month != going_month
                 or selected_origin_year != going_year
             ):
-                self.driver.execute_script("arguments[0].click();", going_day_sum)
+                self.driver.execute_script(click, going_day_sum)
                 sleep(0.01)
                 selected_origin_date = self.get_selected_origin_date()
                 selected_origin_day = selected_origin_date[0]
@@ -199,7 +201,7 @@ class Renfe_search:
             log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
 
-    def process_date(self, date: str = None) -> list:
+    def process_date(self, date: str = None) -> list | NoneType:
         """Gets a string date and transforms it into a int list
 
         Args:
@@ -250,8 +252,8 @@ class Renfe_search:
         try:
 
             return_day_sum = self.get_dates_buttons()[3]
-            for i in range(difference_days):
-                self.driver.execute_script("arguments[0].click();", return_day_sum)
+            for _ in range(difference_days):
+                self.driver.execute_script(click, return_day_sum)
         except Exception as error:
             log.error("Error selecting return date: {}".format(error))
             self.driver.quit()
@@ -264,7 +266,7 @@ class Renfe_search:
                 By.CSS_SELECTOR,
                 ".mdc-button.mdc-button--touch.mdc-button--unelevated.rf-button.rf-button--special.mdc-ripple-upgraded",
             )
-            self.driver.execute_script("arguments[0].click();", submit_button)
+            self.driver.execute_script(click, submit_button)
             log.info("Pressed submit button")
         except Exception as error:
             log.error("Error submitting search: {}".format(error))
@@ -416,12 +418,10 @@ class Renfe_search:
         self.select_going_date(going_date)
         self.print("Selected going date")
 
-        aux = False
         if return_date is not None:
             difference_days = self.get_difference_days(going_date, return_date)
             self.select_return_date(difference_days)
             self.print("Selected return date")
-            aux = True
 
         # Click search button
         self.submit_search()
@@ -434,7 +434,7 @@ class Renfe_search:
         if return_date != None:
             # Get results for return trains
             a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
-            self.driver.execute_script("arguments[0].click();", a[1])
+            self.driver.execute_script(click, a[1])
             sleep(1)
             return_trains = self.get_trains()
         else:
