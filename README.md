@@ -6,6 +6,8 @@
 # Installation
 `pip3 install renfepy`
 
+If chromium is not installed Renfepy will install a it. In case of error it is recommended to install it.
+
 # Usage
 ## Normal execution
 `renfepy <origin> <destination> <going_date>`
