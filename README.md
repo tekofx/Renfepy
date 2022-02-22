@@ -1,6 +1,7 @@
 <h1 align="center">Renfepy</h1>
-<p align="center">Python library to search for trains on renfe.es<p>
 
+<p align="center"><img width=50% src="./renfepy_logo.png"></p>
+<p align="center">Python library to search for trains on renfe.es<p>
 
 # Installation
 `pip3 install renfepy`
