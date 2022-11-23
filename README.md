@@ -1,20 +1,9 @@
-<h1 align="center">Renfepy</h1>
+Utility to download new One Piece manga chapters
 
-<p align="center"><img width=50% src="./assets/logo.png"></p>
-<p align="center">Python library to search for trains on renfe.es<p>
+## Usage
 
-# Installation
-`pip3 install renfepy`
+Check once if there's new chapter
+`python3 main.py`
 
-If chromium is not installed Renfepy will install a it. In case of error it is recommended to install it.
-
-# Usage
-## Normal execution
-`renfepy <origin> <destination> <going_date>`
-
-## Parameters
--g, --gui: Show browser
-
--r, --return: Set return date
-
--v, --verbose: Show more information
+Check every hour
+`python3 main.py -s`
