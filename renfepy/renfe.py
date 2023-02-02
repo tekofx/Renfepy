@@ -16,6 +16,7 @@ from rich.table import Table
 from rich.console import Console
 from logger import log
 from console import console
+from models.train import Train
 
 # Config logging
 log = log.getLogger(__name__)
@@ -398,80 +399,71 @@ class RenfePy:
         destinations_first = destinations_list[0]
         destinations_first.click()
 
+        # Set dates
         self.select_going_date(going_date)
         self.select_return_date(return_date)
-        """ time.sleep(5)
 
-        buttons = self.driver.find_elements(By.TAG_NAME, "button")
-
-        for button in buttons:
-            print(button.text)
-
+        # Search button by XPATH which title contains "Buscar"
         submit_button = self.driver.find_element(
-            By.XPATH, "//button[contains(text(), 'Buscar')]"
+            By.XPATH, "//button[contains(@title, 'Buscar billete')]"
         )
-        submit_button.click() """
+        submit_button.click()
 
-        time.sleep(15)
+        # Get Trains
+        self.driver.execute_script("window.scrollTo(0, 100);")
+        time.sleep(5)
+        trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
 
-        self.driver.quit()
-        return
+        output = []
+        for train in trains:
+            # Find div by XPATH which aria label is Tipo de tren
+            train_type = train.find_element(
+                By.XPATH, "//div[@aria-label='Tipo de tren']"
+            ).text
 
-        # Set origin
-        self.set_origin(origin)
-        self.print("Origin set")
+            # Find div by XPATH which aria label is Hora de salida
+            departure = train.find_element(
+                By.XPATH, "//div[@aria-label='Hora de salida']"
+            ).text
 
-        # Set destination
-        self.set_destination(destination)
-        self.print("Destination set")
+            # Find div by XPATH which aria label is Hora de llegada
+            arrival = train.find_element(
+                By.XPATH, "//div[@aria-label='Hora de llegada']"
+            ).text
 
-        # Select origin date
-        self.select_going_date(going_date)
-        self.print("Selected going date")
+            # Find div by XPATH which aria label is Duración
+            duration = train.find_element(
+                By.XPATH, "//div[@aria-label='Duración']"
+            ).text
 
-        if return_date is not None:
-            difference_days = self.get_difference_days(going_date, return_date)
-            self.select_return_date(difference_days)
-            self.print("Selected return date")
+            # Find buttons with prices
+            prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
+            buttons = train.find_elements(By.CLASS_NAME, "next")
+            # Add each price to the dict
+            prices["Básico"] = buttons[0].text.replace("\n", " ")
+            prices["Elige"] = buttons[1].text.replace("\n", " ")
+            prices["Prémium"] = buttons[2].text.replace("\n", " ")
 
-        # Click search button
-        self.submit_search()
-        self.print("Searching")
+            output.append(
+                Train(
+                    origin,
+                    destination,
+                    train_type,
+                    departure,
+                    arrival,
+                    duration,
+                    prices,
+                )
+            )
 
         time.sleep(5)
 
-        # Get results for going trains
-        going_trains = self.get_trains()
-        self.print("Getting going trains")
-
-        if return_date != None:
-            # Get results for return trains
-            a = self.driver.find_elements(By.CSS_SELECTOR, ".hidden-xs.vistaPc")
-            self.driver.execute_script(click, a[1])
-            sleep(1)
-            return_trains = self.get_trains()
-        else:
-            return_trains = None
-
-        self.quit_and_kill_driver()
-
-        return going_trains, return_trains
-
-    def print(self, txt: str, style: str = None):
-        """Prints a text with a style
-
-        Args:
-            txt (str): text to print
-            style (str, optional):  styel to use. Defaults to None.
-        """
-        if self.verbose:
-            console.print(txt, style)
-
-    def quit_and_kill_driver(self):
-        """Kills the driver"""
         self.driver.quit()
+        return output
 
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=True, verbose=True)
-    renfepy.make_search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
+    trains = renfepy.make_search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
+    for train in trains:
+        print(train)
