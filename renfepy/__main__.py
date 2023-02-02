@@ -1,7 +1,7 @@
-from renfepy.renfe import renfe_search
+from renfe import renfe_search
 import sys
-from renfepy.logger import log
-from renfepy.console import console
+from logger import log
+from console import console
 
 # Config logging
 log = log.getLogger(__name__)

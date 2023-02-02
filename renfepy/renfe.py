@@ -7,8 +7,6 @@ from time import sleep
 import datetime
 import os
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,10 +14,8 @@ import sys
 from rich.console import Console
 from rich.table import Table
 from rich.console import Console
-
-
-from renfepy.logger import log
-from renfepy.console import console
+from logger import log
+from console import console
 
 # Config logging
 log = log.getLogger(__name__)
@@ -33,27 +29,11 @@ class renfe_search:
             self.verbose = verbose
 
             # Setup options
-            options = webdriver.ChromeOptions()
+            options = webdriver.FirefoxOptions()
             if not gui:
-                options.add_argument("--no-sandbox")
-                options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--headless")
 
-            # Setup driver
-            if not os.path.exists("/usr/bin/chromedriver"):
-                log.info("Using preinstalled chromedriver")
-
-                s = Service(
-                    ChromeDriverManager().install(),
-                )
-            else:
-                log.info("Using chromedriver from /usr/bin/chromedriver")
-
-                s = Service(
-                    executable_path="/usr/bin/chromedriver",
-                )
-
-            self.driver = webdriver.Chrome(service=s, options=options)
+            self.driver = webdriver.Firefox(options=options)
 
         except Exception as error:
             log.error("Error at setting driver: {}".format(error))
@@ -457,15 +437,3 @@ class renfe_search:
     def quit_and_kill_driver(self):
         """Kills the driver"""
         self.driver.quit()
-        try:
-            pid = True
-            while pid:
-                pid = os.waitpid(-1, os.WNOHANG)
-                try:
-                    if pid[0] == 0:
-                        pid = False
-                except Exception as e:
-                    log.error("Error killing driver: {}".format(e))
-
-        except ChildProcessError:
-            pass

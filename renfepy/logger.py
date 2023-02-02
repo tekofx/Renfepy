@@ -2,7 +2,7 @@ import logging
 
 # Config logging
 logging.basicConfig(
-    filename="/var/log/renfe_search.log",
+    filename="renfepy.log",
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%H:%M:%S",
