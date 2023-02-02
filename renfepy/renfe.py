@@ -51,7 +51,6 @@ class RenfePy:
             origin (str): of the train
         """
         try:
-            sleep(1)
             # Write the origin
             origin_text_field = self.driver.find_elements(By.ID, "origin")
             origin_text_field[1].send_keys(origin)
@@ -112,24 +111,6 @@ class RenfePy:
             log.error("Error at setting destination: {}".format(error))
             self.driver.quit()
 
-    def get_selected_origin_date(self) -> list:
-        """Gets the selected origin date
-
-        Returns:
-            list: containing day, month and year of the origin date
-        """
-        # Get selected dates
-        date = self.driver.find_element(By.ID, "daterange").get_attribute(
-            "default-date-from"
-        )
-        test = parse(date)
-        print(test.day)
-        selected_going_day = int(date[8:][:-15])
-        selected_going_month = int(date[5:][:-18])
-        selected_origin_year = int(date[:-21])
-        date = [selected_going_day, selected_going_month, selected_origin_year]
-        return date
-
     def get_dates_buttons(self) -> list:
         """Gets the dates buttons to increase and decrease the date of the going and returning
 
@@ -176,32 +157,6 @@ class RenfePy:
         except Exception as error:
             log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
-
-    def get_difference_days(self, going_date: list, return_date: list) -> int:
-        """Calculates the difference between the going and return date
-
-        Args:
-            going_date (list): containing day, month and year of the going date
-            return_date (list): containing day, month and year of the return date
-
-        Returns:
-            int: days of difference between the going and return date
-        """
-        try:
-            going_day = int(going_date[0])
-            going_month = int(going_date[1])
-            going_year = int(going_date[2])
-
-            return_day = int(return_date[0])
-            return_month = int(return_date[1])
-            return_year = int(return_date[2])
-
-            going_date = datetime.date(going_year, going_month, going_day)
-            return_date = datetime.date(return_year, return_month, return_day)
-            difference_days = (return_date - going_date).days
-            return difference_days
-        except Exception as error:
-            log.error("Error getting difference days: {}".format(error))
 
     def select_return_date(self, return_date: datetime.date) -> None:
         """Selects the return date
