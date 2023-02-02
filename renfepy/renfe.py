@@ -111,27 +111,6 @@ class RenfePy:
             log.error("Error at setting destination: {}".format(error))
             self.driver.quit()
 
-    def get_dates_buttons(self) -> list:
-        """Gets the dates buttons to increase and decrease the date of the going and returning
-
-        Returns:
-            list: containing buttons decrease_going_date, increase_going_date, decrease_returning_date, increase_returning_date
-        """
-        # Get buttons to change dates
-        buttons = self.driver.find_elements(By.CLASS_NAME, "rf-daterange__btn")
-        for el in buttons:
-            if "Restar día fecha ida" in el.get_attribute("aria-label"):
-                going_day_rest = el
-            elif "Sumar día fecha ida" in el.get_attribute("aria-label"):
-                going_day_sum = el
-            elif "Restar día fecha vuelta" in el.get_attribute("aria-label"):
-                return_day_rest = el
-            else:
-                return_day_sum = el
-
-        output = [going_day_rest, going_day_sum, return_day_rest, return_day_sum]
-        return output
-
     def select_going_date(self, going_date: datetime.date) -> None:
         """Selects the going date
 
@@ -139,7 +118,9 @@ class RenfePy:
             going_date (list): containing day, month and year of the going date
         """
         try:
-            going_day_sum = self.get_dates_buttons()[1]
+            going_day_sum = self.driver.find_element(
+                By.XPATH, "//button[contains(@aria-label, 'Sumar día fecha ida')]"
+            )
             selected_origin_date = parse(
                 self.driver.find_element(By.ID, "daterange").get_attribute(
                     "default-date-from"
@@ -165,7 +146,9 @@ class RenfePy:
             return_date (list): containing day, month and year of the return date
         """
         try:
-            return_day_sum = self.get_dates_buttons()[3]
+            return_day_sum = self.driver.find_element(
+                By.XPATH, "//button[contains(@aria-label, 'Sumar día fecha vuelta')]"
+            )
             selected_going_date = parse(
                 self.driver.find_element(By.ID, "daterange").get_attribute(
                     "default-date-from"
@@ -202,6 +185,12 @@ class RenfePy:
         elem = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "origin"))  # This is a dummy element
         )
+
+        """   buttons = self.driver.find_elements(
+            By.XPATH, "//button[contains(@aria-label, 'Restar día fecha ida')]"
+        )
+        for el in buttons:
+            print(el.get_attribute("aria-label")) """
 
         # Process going date
         print(f"Going date: {going_date}")
