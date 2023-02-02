@@ -162,7 +162,59 @@ class RenfePy:
             log.error("Error selecting return date: {}".format(error))
             self.driver.quit()
 
-    def make_search(
+    def _get_trains(self):
+        aux = self.driver.find_element(By.XPATH, "//li[contains(@class, 'active')]")
+        origin_destination = aux.find_element(
+            By.XPATH, "//span[contains(@class, 'h3')]"
+        ).text
+        origin, destination = origin_destination.split(" a ")
+        going_trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
+
+        output = []
+        for train in going_trains:
+            # Find div by XPATH which aria label is Tipo de tren
+            train_type = train.find_element(
+                By.XPATH, "//div[@aria-label='Tipo de tren']"
+            ).text
+
+            # Find div by XPATH which aria label is Hora de salida
+            departure = train.find_element(
+                By.XPATH, "//div[@aria-label='Hora de salida']"
+            ).text
+
+            # Find div by XPATH which aria label is Hora de llegada
+            arrival = train.find_element(
+                By.XPATH, "//div[@aria-label='Hora de llegada']"
+            ).text
+
+            # Find div by XPATH which aria label is Duración
+            duration = train.find_element(
+                By.XPATH, "//div[@aria-label='Duración']"
+            ).text
+
+            # Find buttons with prices
+            prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
+            buttons = train.find_elements(By.CLASS_NAME, "next")
+            # Add each price to the dict
+            prices["Básico"] = buttons[0].text.replace("\n", " ")
+            prices["Elige"] = buttons[1].text.replace("\n", " ")
+            prices["Prémium"] = buttons[2].text.replace("\n", " ")
+
+            output.append(
+                Train(
+                    origin,
+                    destination,
+                    train_type,
+                    departure,
+                    arrival,
+                    duration,
+                    prices,
+                )
+            )
+
+        return output
+
+    def search(
         self,
         origin: str,
         destination: str,
@@ -210,7 +262,14 @@ class RenfePy:
         # write origin
         origin_input = origin_elements.find_element(By.TAG_NAME, "input")
         origin_input.send_keys(origin)
+
+        # TODO: Check if this is necessary
         # click on first option
+        elem = WebDriverWait(origin_elements, 30).until(
+            EC.presence_of_element_located(
+                (By.TAG_NAME, "li")
+            )  # This is a dummy element
+        )
         origins_list = origin_elements.find_elements(By.TAG_NAME, "li")
         origins_first = origins_list[0]
         origins_first.click()
@@ -233,61 +292,20 @@ class RenfePy:
         )
         submit_button.click()
 
-        # Get Trains
+        # Get going Trains
         self.driver.execute_script("window.scrollTo(0, 100);")
         elem = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.CLASS_NAME, "next"))
         )
-        trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
 
-        output = []
-        for train in trains:
-            # Find div by XPATH which aria label is Tipo de tren
-            train_type = train.find_element(
-                By.XPATH, "//div[@aria-label='Tipo de tren']"
-            ).text
-
-            # Find div by XPATH which aria label is Hora de salida
-            departure = train.find_element(
-                By.XPATH, "//div[@aria-label='Hora de salida']"
-            ).text
-
-            # Find div by XPATH which aria label is Hora de llegada
-            arrival = train.find_element(
-                By.XPATH, "//div[@aria-label='Hora de llegada']"
-            ).text
-
-            # Find div by XPATH which aria label is Duración
-            duration = train.find_element(
-                By.XPATH, "//div[@aria-label='Duración']"
-            ).text
-
-            # Find buttons with prices
-            prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
-            buttons = train.find_elements(By.CLASS_NAME, "next")
-            # Add each price to the dict
-            prices["Básico"] = buttons[0].text.replace("\n", " ")
-            prices["Elige"] = buttons[1].text.replace("\n", " ")
-            prices["Prémium"] = buttons[2].text.replace("\n", " ")
-
-            output.append(
-                Train(
-                    origin,
-                    destination,
-                    train_type,
-                    departure,
-                    arrival,
-                    duration,
-                    prices,
-                )
-            )
+        going_trains = self._get_trains()
 
         self.driver.quit()
-        return output
+        return going_trains
 
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=True, verbose=True)
-    trains = renfepy.make_search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
+    trains = renfepy.search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
     for train in trains:
         print(train)
