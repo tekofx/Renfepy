@@ -199,7 +199,9 @@ class RenfePy:
 
         """
 
-        time.sleep(5)
+        elem = WebDriverWait(self.driver, 30).until(
+            EC.presence_of_element_located((By.ID, "origin"))  # This is a dummy element
+        )
 
         # Process going date
         print(f"Going date: {going_date}")
@@ -244,7 +246,9 @@ class RenfePy:
 
         # Get Trains
         self.driver.execute_script("window.scrollTo(0, 100);")
-        time.sleep(5)
+        elem = WebDriverWait(self.driver, 30).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "next"))
+        )
         trains = self.driver.find_elements(By.CLASS_NAME, "trayectoRow")
 
         output = []
@@ -288,8 +292,6 @@ class RenfePy:
                     prices,
                 )
             )
-
-        time.sleep(5)
 
         self.driver.quit()
         return output
