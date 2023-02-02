@@ -1,11 +1,11 @@
 #!/usr/bin/python3
-
+from dateutil.parser import parse
+import time
 from types import NoneType
 from typing import Tuple
 from selenium import webdriver
 from time import sleep
 import datetime
-import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,8 +22,8 @@ log = log.getLogger(__name__)
 click = "arguments[0].click();"
 
 
-class renfe_search:
-    def __init__(self, gui: bool, verbose: bool):
+class RenfePy:
+    def __init__(self, gui: bool = False, verbose: bool = False):
         try:
 
             self.verbose = verbose
@@ -36,16 +36,12 @@ class renfe_search:
             self.driver = webdriver.Firefox(options=options)
 
         except Exception as error:
-            log.error("Error at setting driver: {}".format(error))
-            console.print(
-                "An error ocurred, check /tmp/renfe_search.log", style="bold red"
-            )
-            console.print("You can try to install chromium by yourself")
+            print("Error at setting driver: {}".format(error))
+
             sys.exit()
         else:
             html = "https://www.renfe.com/es/es"
             self.driver.get(html)
-            self.wait = WebDriverWait(self.driver, 60)
 
     def set_origin(self, origin: str) -> None:
         """Writes in the origin search box
@@ -122,10 +118,14 @@ class renfe_search:
             list: containing day, month and year of the origin date
         """
         # Get selected dates
-        date = self.driver.find_element(By.ID, "daterange")
-        selected_going_day = int(date.get_attribute("default-date-from")[8:][:-15])
-        selected_going_month = int(date.get_attribute("default-date-from")[5:][:-18])
-        selected_origin_year = int(date.get_attribute("default-date-from")[:-21])
+        date = self.driver.find_element(By.ID, "daterange").get_attribute(
+            "default-date-from"
+        )
+        test = parse(date)
+        print(test.day)
+        selected_going_day = int(date[8:][:-15])
+        selected_going_month = int(date[5:][:-18])
+        selected_origin_year = int(date[:-21])
         date = [selected_going_day, selected_going_month, selected_origin_year]
         return date
 
@@ -150,7 +150,7 @@ class renfe_search:
         output = [going_day_rest, going_day_sum, return_day_rest, return_day_sum]
         return output
 
-    def select_going_date(self, going_date: list) -> None:
+    def select_going_date(self, going_date: datetime.date) -> None:
         """Selects the going date
 
         Args:
@@ -158,43 +158,23 @@ class renfe_search:
         """
         try:
             going_day_sum = self.get_dates_buttons()[1]
-            selected_origin_date = self.get_selected_origin_date()
-            going_day = going_date[0]
-            going_month = going_date[1]
-            going_year = going_date[2]
+            selected_origin_date = parse(
+                self.driver.find_element(By.ID, "daterange").get_attribute(
+                    "default-date-from"
+                )
+            ).date()
 
-            selected_origin_day = selected_origin_date[0]
-            selected_origin_month = selected_origin_date[1]
-            selected_origin_year = selected_origin_date[2]
-            while (
-                selected_origin_day != going_day
-                or selected_origin_month != going_month
-                or selected_origin_year != going_year
-            ):
+            while selected_origin_date != going_date:
                 self.driver.execute_script(click, going_day_sum)
                 sleep(0.01)
-                selected_origin_date = self.get_selected_origin_date()
-                selected_origin_day = selected_origin_date[0]
-                selected_origin_month = selected_origin_date[1]
-                selected_origin_year = selected_origin_date[2]
+                selected_origin_date = parse(
+                    self.driver.find_element(By.ID, "daterange").get_attribute(
+                        "default-date-from"
+                    )
+                ).date()
         except Exception as error:
             log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
-
-    def process_date(self, date: str = None) -> list | NoneType:
-        """Gets a string date and transforms it into a int list
-
-        Args:
-            date (str): with the format dd-mm-yyyy
-        """
-        try:
-            if date is None:
-                return None
-            str_date_list = date.split("-")
-            output = list(map(int, str_date_list))
-            return output
-        except Exception as error:
-            log.error("Error at processing date: {}".format(error))
 
     def get_difference_days(self, going_date: list, return_date: list) -> int:
         """Calculates the difference between the going and return date
@@ -222,16 +202,21 @@ class renfe_search:
         except Exception as error:
             log.error("Error getting difference days: {}".format(error))
 
-    def select_return_date(self, difference_days: int) -> None:
+    def select_return_date(self, return_date: datetime.date) -> None:
         """Selects the return date
 
         Args:
-            difference_days (int): difference between the going and return date. This will be used to click
-                the buttons to increase the return date
+            return_date (list): containing day, month and year of the return date
         """
         try:
-
             return_day_sum = self.get_dates_buttons()[3]
+            selected_going_date = parse(
+                self.driver.find_element(By.ID, "daterange").get_attribute(
+                    "default-date-from"
+                )
+            ).date()
+            difference_days = (return_date - selected_going_date).days
+
             for _ in range(difference_days):
                 self.driver.execute_script(click, return_day_sum)
         except Exception as error:
@@ -380,11 +365,57 @@ class renfe_search:
 
         """
 
+        time.sleep(5)
+
         # Process going date
-        going_date = self.process_date(going_date)
+        print(f"Going date: {going_date}")
+        going_date = datetime.datetime.strptime(going_date, "%d/%m/%Y").date()
+        print(f"Going date: {going_date}")
 
         # Process return date
-        return_date = self.process_date(return_date)
+        print(f"Return date: {return_date}")
+        return_date = datetime.datetime.strptime(return_date, "%d/%m/%Y").date()
+        print(f"Return date: {return_date}")
+
+        # Get origin and destination elements
+        inputs = self.driver.find_elements(By.CLASS_NAME, "awesomplete")
+        origin_elements = inputs[0]
+        destination_elements = inputs[1]
+
+        # write origin
+        origin_input = origin_elements.find_element(By.TAG_NAME, "input")
+        origin_input.send_keys(origin)
+        # click on first option
+        origins_list = origin_elements.find_elements(By.TAG_NAME, "li")
+        origins_first = origins_list[0]
+        origins_first.click()
+
+        # write destination
+        destination_input = destination_elements.find_element(By.TAG_NAME, "input")
+        destination_input.send_keys(destination)
+        # click on first option
+        destinations_list = destination_elements.find_elements(By.TAG_NAME, "li")
+        destinations_first = destinations_list[0]
+        destinations_first.click()
+
+        self.select_going_date(going_date)
+        self.select_return_date(return_date)
+        """ time.sleep(5)
+
+        buttons = self.driver.find_elements(By.TAG_NAME, "button")
+
+        for button in buttons:
+            print(button.text)
+
+        submit_button = self.driver.find_element(
+            By.XPATH, "//button[contains(text(), 'Buscar')]"
+        )
+        submit_button.click() """
+
+        time.sleep(15)
+
+        self.driver.quit()
+        return
 
         # Set origin
         self.set_origin(origin)
@@ -406,6 +437,8 @@ class renfe_search:
         # Click search button
         self.submit_search()
         self.print("Searching")
+
+        time.sleep(5)
 
         # Get results for going trains
         going_trains = self.get_trains()
@@ -437,3 +470,8 @@ class renfe_search:
     def quit_and_kill_driver(self):
         """Kills the driver"""
         self.driver.quit()
+
+
+if __name__ == "__main__":
+    renfepy = RenfePy(gui=True, verbose=True)
+    renfepy.make_search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
