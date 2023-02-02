@@ -17,6 +17,7 @@ from rich.console import Console
 from logger import log
 from console import console
 from models.train import Train
+from models.traintable import TrainTable
 
 # Config logging
 log = log.getLogger(__name__)
@@ -176,45 +177,33 @@ class RenfePy:
         train_table = self.driver.find_element(
             By.XPATH, "//tbody[@id='listaTrenesTBodyIda']"
         )
-        print(train_table.get_attribute("style"))
         # if we are looking for the return trains
-        if train_table.get_attribute("style") == "display: none;":
-            train_table = self.driver.find_element(
-                By.XPATH, "//tbody[@id='listaTrenesTBodyVuelta']"
-            )
-            print("Vuelta")
-
-        time.sleep(2)
 
         going_trains = train_table.find_elements(By.CLASS_NAME, "trayectoRow")
         output = []
         for train in going_trains:
+
+            # TODO: not use XPATH because it does not look on the element you are searching
             print(train.text)
 
-            celdas_responsives = train.find_elements(
-                By.XPATH, "//td[contains(@class, 'celdaResponsive')]"
-            )
-
-            celda_salida = celdas_responsives[0]
             # Find div by XPATH which aria label is Hora de salida
-            departure = celda_salida.find_element(
+            departure = train.find_element(
                 By.XPATH, "//div[@aria-label='Hora de salida']"
             ).text
             # Find div by XPATH which aria label is Duración
-            duration = celda_salida.find_element(
+            duration = train.find_element(
                 By.XPATH, "//div[@aria-label='Duración']"
             ).text
 
-            celda_llegada = celdas_responsives[1]
             # Find div by XPATH which aria label is Hora de llegada
-            divs = celda_llegada.find_elements(
-                By.XPATH, "//div[@class='displace-text']"
-            )
-            arrival = divs[0].text
+            arrival = train.find_element(
+                By.XPATH, "//div[@aria-label='Hora de llegada']"
+            ).text
 
             # Find div by XPATH which aria label is Tipo de tren
-            train_type = divs[2].text
-            print(f"train_type: {train_type}")
+            train_type = train.find_element(
+                By.XPATH, "//div[@aria-label='Tipo de tren']"
+            ).text
 
             # Find buttons with prices
             prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
@@ -223,11 +212,6 @@ class RenfePy:
             prices["Básico"] = buttons[0].text.replace("\n", " ")
             prices["Elige"] = buttons[1].text.replace("\n", " ")
             prices["Prémium"] = buttons[2].text.replace("\n", " ")
-            print("\n\n")
-
-            if train_type == "":
-                print("no hay trenes con tipo")
-                continue
 
             output.append(
                 Train(
@@ -241,7 +225,6 @@ class RenfePy:
                 )
             )
 
-        print("\n\n")
         return output
 
     def search(
@@ -332,27 +315,12 @@ class RenfePy:
         time.sleep(2)
         going_trains = self._get_trains()
 
-        # Get return Trains
-        elem = WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located(
-                (By.XPATH, "//tbody[@id='listaTrenesTBodyIda']")
-            )
-        )
-        time.sleep(2)
-
-        return_button = self.driver.find_element(By.ID, "lab-trayecto1").click()
-
-        return_trains = self._get_trains()
-        print("Return trains:")
-        for t in return_trains:
-            print(t)
-
         self.driver.quit()
-        return going_trains, return_trains
+        return going_trains
 
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=True, verbose=True)
-    going_trains, return_trains = renfepy.search(
-        "Madrid", "Barcelona", "10/02/2023", "15/02/2023"
-    )
+    going_trains = renfepy.search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
+    table = TrainTable(going_trains, "Madrid", "Barcelona")
+    table.table()
