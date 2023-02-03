@@ -53,7 +53,7 @@ class TrainTable:
         ]
 
         for x in self.trains:
-            table.add_row(
+            data = [
                 x.train_type,
                 x.departure,
                 x.arrival,
@@ -61,7 +61,8 @@ class TrainTable:
                 x.prices["Básico"],
                 x.prices["Elige"],
                 x.prices["Prémium"],
-            )
+            ]
+            table.add_row(data)
 
         return table.get_string()
 
