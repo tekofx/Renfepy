@@ -1,2 +1,2 @@
-from renfepy import *
-from renfepy.models import *
+from .models import Train, TrainTable
+from .logger import log

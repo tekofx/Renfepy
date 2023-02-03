@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 from dateutil.parser import parse
-import time
-from types import NoneType
 from typing import Tuple
 from selenium import webdriver
 from time import sleep
@@ -11,9 +9,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import sys
-from renfepy.logger import log
-from renfepy.models.train import Train
-from renfepy.models.traintable import TrainTable
+from logger import log
+from models import Train
+from models import TrainTable
 
 # Config logging
 log = log.getLogger(__name__)
@@ -268,4 +266,6 @@ class RenfePy:
 if __name__ == "__main__":
     renfepy = RenfePy(gui=False)
     going_trains = renfepy.search("Madrid", "Barcelona", "04/02/2023")
-    going_trains.table()
+    going_trains.print_table()
+    pretty = going_trains.pretty_table()
+    print(pretty)
