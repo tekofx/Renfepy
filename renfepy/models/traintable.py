@@ -17,7 +17,7 @@ class TrainTable:
     def table(self) -> None:
         """Prints a table with all the trains"""
         table = Table(
-            title=f"From {self.origin} to {self.destination} on {self.date}",
+            title=f" {self.origin} a {self.destination} el {self.date}",
             show_lines=True,
         )
         table.add_column("Tipo")
