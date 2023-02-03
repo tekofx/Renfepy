@@ -47,74 +47,7 @@ class RenfePy:
             self.is_open = False
             self.driver.quit()
 
-    def set_origin(self, origin: str) -> None:
-        """Writes in the origin search box
-
-        Args:
-            origin (str): of the train
-        """
-        try:
-            # Write the origin
-            origin_text_field = self.driver.find_elements(By.ID, "origin")
-            origin_text_field[1].send_keys(origin)
-            log.info("Written in origin search bar: {origin}".format(origin=origin))
-
-            # Select origin from list
-            origins_list = self.driver.find_elements(By.ID, "awesomplete_list_2_item_0")
-            if len(origins_list) == 0:
-                origins_list = self.driver.find_elements(
-                    By.ID, "awesomplete_list_1_item_0"
-                )
-
-            try:
-                origins_list[0].click()
-            except Exception as error:
-                log.error("error when selecting origin from panel: {}".format(error))
-
-        except Exception as error:
-            log.error("Error setting origin: {}".format(error))
-            # self.driver.quit()
-
-    def set_destination(self, destination: str) -> None:
-        """Writes in the destination search box
-
-        Args:
-            destination (str): of the train
-        """
-        try:
-            # Write the destination in the search box
-            destination_text_field = self.driver.find_elements(By.ID, "destination")
-            destination_text_field[1].send_keys(destination)
-            log.info(
-                "Written in destination search bar: {destination}".format(
-                    destination=destination
-                )
-            )
-
-            # Select origing from list
-            destination_list_item = self.driver.find_element(
-                By.ID, "awesomplete_list_2_item_0"
-            )
-
-            if (
-                destination.lower()
-                not in destination_list_item.get_attribute("innerHTML").lower()
-            ):
-                destination_list_item = self.driver.find_element(
-                    By.ID, "awesomplete_list_1_item_0"
-                )
-
-            self.driver.execute_script(click, destination_list_item)
-            log.info(
-                "Selected destination {destination} from destination list".format(
-                    destination=destination
-                )
-            )
-        except Exception as error:
-            log.error("Error at setting destination: {}".format(error))
-            self.driver.quit()
-
-    def select_going_date(self, going_date: datetime.date) -> None:
+    def __select_going_date(self, going_date: datetime.date) -> None:
         """Selects the going date
 
         Args:
@@ -142,7 +75,7 @@ class RenfePy:
             log.error("Error selecting going date: {}".format(error))
             self.driver.quit()
 
-    def select_return_date(self, return_date: datetime.date) -> None:
+    def __select_return_date(self, return_date: datetime.date) -> None:
         """Selects the return date
 
         Args:
@@ -165,7 +98,7 @@ class RenfePy:
             log.error("Error selecting return date: {}".format(error))
             self.driver.quit()
 
-    def _get_trains(self):
+    def __get_trains(self):
         # FIXME: Only works for going trains
 
         # Get origin and destination
@@ -287,12 +220,12 @@ class RenfePy:
 
         # Set dates
         going_date = datetime.datetime.strptime(going_date, "%d/%m/%Y").date()
-        self.select_going_date(going_date)
+        self.__select_going_date(going_date)
 
         if return_date:
             # Process return date
             return_date = datetime.datetime.strptime(return_date, "%d/%m/%Y").date()
-            self.select_return_date(return_date)
+            self.__select_return_date(return_date)
 
         # Search button by XPATH which title contains "Buscar"
         submit_button = self.driver.find_element(
@@ -315,7 +248,7 @@ class RenfePy:
         ):
             return None
 
-        going_trains = TrainTable(self._get_trains(), origin, destination, going_date)
+        going_trains = TrainTable(self.__get_trains(), origin, destination, going_date)
 
         if return_date is None:
             self.driver.quit()
@@ -325,7 +258,9 @@ class RenfePy:
             By.XPATH, "//li[contains(@id, 'lab-trayecto1')]"
         ).click()
 
-        return_trains = TrainTable(self._get_trains(), destination, origin, return_date)
+        return_trains = TrainTable(
+            self.__get_trains(), destination, origin, return_date
+        )
 
         return going_trains, return_trains
 
