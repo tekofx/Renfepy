@@ -12,7 +12,7 @@ class TrainTable:
         self.trains = trains
         self.origin = origin
         self.destination = destination
-        self.date = date
+        self.date = date.strftime("%d/%m/%Y")
 
     def table(self) -> None:
         """Prints a table with all the trains"""
