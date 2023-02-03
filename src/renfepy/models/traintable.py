@@ -1,4 +1,4 @@
-from models.train import Train
+from renfepy.models.train import Train
 from typing import List
 from rich.console import Console
 from rich.table import Table
@@ -16,6 +16,13 @@ class TrainTable:
 
     def table(self) -> None:
         """Prints a table with all the trains"""
+        console = Console()
+
+        if len(self.trains) == 0:
+            return console.print(
+                "No hay trenes disponibles para esta ruta", style="red"
+            )
+
         table = Table(
             title=f" {self.origin} a {self.destination} el {self.date}",
             show_lines=True,
@@ -39,5 +46,4 @@ class TrainTable:
                 x.prices["Prémium"],
             )
 
-        console = Console()
         console.print(table)

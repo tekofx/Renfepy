@@ -1,3 +1,5 @@
 selenium
 rich
 python-dateutil
+build
+twine

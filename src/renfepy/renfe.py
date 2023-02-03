@@ -11,13 +11,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import sys
-from rich.console import Console
-from rich.table import Table
-from rich.console import Console
-from logger import log
-from console import console
-from models.train import Train
-from models.traintable import TrainTable
+from renfepy.logger import log
+from renfepy.models.train import Train
+from renfepy.models.traintable import TrainTable
 
 # Config logging
 log = log.getLogger(__name__)
@@ -199,12 +195,18 @@ class RenfePy:
                     train_type = div.text
 
             # Find buttons with prices
-            prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
+            prices = {"Básico": "", "Elige": "", "Prémium": ""}
+
             buttons = train.find_elements(By.CLASS_NAME, "next")
             # Add each price to the dict
-            prices["Básico"] = buttons[0].text.replace("\n", " ")
-            prices["Elige"] = buttons[1].text.replace("\n", " ")
-            prices["Prémium"] = buttons[2].text.replace("\n", " ")
+            if len(buttons) == 3:
+                prices["Básico"] = buttons[0].text.replace("\n", " ")
+                prices["Elige"] = buttons[1].text.replace("\n", " ")
+                prices["Prémium"] = buttons[2].text.replace("\n", " ")
+            else:
+                prices["Básico"] = train.find_element(
+                    By.CLASS_NAME, "booking-list-element-price-complete"
+                ).text
 
             output.append(
                 Train(
@@ -300,7 +302,6 @@ class RenfePy:
         )
 
         trains_available = self.driver.find_element(By.ID, "tab-mensaje_contenido").text
-        print(trains_available)
         if (
             "El trayecto consultado no se encuentra disponible para la venta"
             in trains_available
@@ -324,6 +325,6 @@ class RenfePy:
 
 
 if __name__ == "__main__":
-    renfepy = RenfePy(gui=True, verbose=True)
-    going_trains = renfepy.search("Madrid", "Barcelona", "15/04/2023")
+    renfepy = RenfePy(gui=False, verbose=True)
+    going_trains = renfepy.search("Madrid", "Barcelona", "04/02/2023")
     going_trains.table()
