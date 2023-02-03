@@ -226,7 +226,7 @@ class RenfePy:
         destination: str,
         going_date: str,
         return_date: str = None,
-    ) -> Tuple[list, list]:
+    ) -> Tuple[TrainTable, TrainTable] | TrainTable:
         """Gets information about trains on a certain date, and if provided, the info about trains for a return date
 
         Args:
@@ -236,29 +236,17 @@ class RenfePy:
             return_date (str, optional): return date. Defaults to None.
 
         Returns:
-            Tuple[list, list]: each list contains dicts with the information of each train
-
+            Tuple[TrainTable, TrainTable] | TrainTable: If return_date is provided, returns a tuple with the going and return train tables. If not, returns the going train table
         """
 
         elem = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "origin"))  # This is a dummy element
         )
 
-        """   buttons = self.driver.find_elements(
-            By.XPATH, "//button[contains(@aria-label, 'Restar día fecha ida')]"
-        )
-        for el in buttons:
-            print(el.get_attribute("aria-label")) """
-
-        # Process going date
-        print(f"Going date: {going_date}")
-        going_date = datetime.datetime.strptime(going_date, "%d/%m/%Y").date()
-        print(f"Going date: {going_date}")
-
-        # Process return date
-        print(f"Return date: {return_date}")
-        return_date = datetime.datetime.strptime(return_date, "%d/%m/%Y").date()
-        print(f"Return date: {return_date}")
+        # Wait for origin element to be clickable
+        WebDriverWait(self.driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//input[@id='origin']"))
+        ).click()
 
         # Get origin and destination elements
         inputs = self.driver.find_elements(By.CLASS_NAME, "awesomplete")
@@ -289,8 +277,13 @@ class RenfePy:
         destinations_first.click()
 
         # Set dates
+        going_date = datetime.datetime.strptime(going_date, "%d/%m/%Y").date()
         self.select_going_date(going_date)
-        self.select_return_date(return_date)
+
+        if return_date:
+            # Process return date
+            return_date = datetime.datetime.strptime(return_date, "%d/%m/%Y").date()
+            self.select_return_date(return_date)
 
         # Search button by XPATH which title contains "Buscar"
         submit_button = self.driver.find_element(
@@ -305,21 +298,24 @@ class RenfePy:
                 (By.XPATH, "//tbody[@id='listaTrenesTBodyIda']")
             )
         )
-        time.sleep(2)
-        going_trains = self._get_trains()
+        going_trains = TrainTable(self._get_trains(), origin, destination, going_date)
+
+        if return_date is None:
+            self.driver.quit()
+            return going_trains
 
         button_return = self.driver.find_element(
             By.XPATH, "//li[contains(@id, 'lab-trayecto1')]"
         ).click()
 
-        return_trains = self._get_trains()
+        return_trains = TrainTable(self._get_trains(), destination, origin, return_date)
 
         self.driver.quit()
-        return return_trains
+        return going_trains, return_trains
 
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=True, verbose=True)
-    going_trains = renfepy.search("Madrid", "Barcelona", "10/02/2023", "15/02/2023")
-    table = TrainTable(going_trains, "Madrid", "Barcelona")
-    table.table()
+    going_trains = renfepy.search("Madrid", "Barcelona", "10/02/2023")
+
+    going_trains.table()
