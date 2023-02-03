@@ -36,14 +36,20 @@ class RenfePy:
             sys.exit()
 
     def open(self):
+        """Opens the renfe website"""
         if not self.__is_open:
-            self.__is_open = True
             self.driver.get("https://www.renfe.com/es/es")
+            self.__is_open = True
+
+    def quit(self):
+        """Quits the driver"""
+        self.driver.quit()
 
     def close(self):
+        """Closes the website"""
         if self.__is_open:
+            self.driver.close()
             self.__is_open = False
-            self.driver.quit()
 
     def __select_going_date(self, going_date: datetime.date) -> None:
         """Selects the going date
@@ -177,7 +183,7 @@ class RenfePy:
         Returns:
             Tuple[TrainTable, TrainTable] | TrainTable | None: Returns a tuple of TrainTables if return_date is provided, a TrainTable if return_date is None, and None if the search failed
         """
-        self.open()
+        self.driver.get("https://www.renfe.com/es/es")
 
         elem = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "origin"))  # This is a dummy element
@@ -265,7 +271,11 @@ class RenfePy:
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=False)
-    going_trains = renfepy.search("Madrid", "Barcelona", "04/02/2023")
-    going_trains.print_table()
-    pretty = going_trains.pretty_table()
-    print(pretty)
+    try:
+        going_trains = renfepy.search("Madrid", "Barcelona", "04/02/2023")
+        going_trains.print_table()
+
+        pretty = going_trains.pretty_table()
+    except Exception as e:
+        print(e)
+        renfepy.quit()
