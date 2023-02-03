@@ -177,24 +177,23 @@ class RenfePy:
         train_table = self.driver.find_element(
             By.XPATH, "//tbody[@id='listaTrenesTBodyIda']"
         )
+
+        style = train_table.get_attribute("style")
+        if style == "display: none;":
+            train_table = self.driver.find_element(
+                By.XPATH, "//tbody[@id='listaTrenesTBodyVuelta']"
+            )
         # if we are looking for the return trains
 
         going_trains = train_table.find_elements(By.CLASS_NAME, "trayectoRow")
         output = []
         for train in going_trains:
-            # TODO: not use XPATH because it does not look on the element you are searching
 
-            # Find div by XPATH which aria label is Hora de salida
             departure = train.find_element(By.CLASS_NAME, "salida").text
-            # Find div by XPATH which aria label is Duración
             duration = train.find_element(By.CLASS_NAME, "duracion").text
-
-            # Find div by XPATH which aria label is Hora de llegada
             arrival = train.find_element(By.CLASS_NAME, "llegada").text
 
-            # Find div by XPATH which aria label is Tipo de tren
             divs = train.find_elements(By.TAG_NAME, "div")
-            # Get div with aria label Tipo de tren
             for div in divs:
                 if div.get_attribute("aria-label") == "Tipo de tren":
                     train_type = div.text
@@ -309,8 +308,14 @@ class RenfePy:
         time.sleep(2)
         going_trains = self._get_trains()
 
+        button_return = self.driver.find_element(
+            By.XPATH, "//li[contains(@id, 'lab-trayecto1')]"
+        ).click()
+
+        return_trains = self._get_trains()
+
         self.driver.quit()
-        return going_trains
+        return return_trains
 
 
 if __name__ == "__main__":
