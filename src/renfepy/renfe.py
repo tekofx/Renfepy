@@ -22,7 +22,7 @@ click = "arguments[0].click();"
 
 class RenfePy:
     def __init__(self, gui: bool = False):
-        self.is_open = False
+        self.__is_open = False
         try:
 
             # Setup options
@@ -38,13 +38,13 @@ class RenfePy:
             sys.exit()
 
     def open(self):
-        if not self.is_open:
-            self.is_open = True
+        if not self.__is_open:
+            self.__is_open = True
             self.driver.get("https://www.renfe.com/es/es")
 
     def close(self):
-        if self.is_open:
-            self.is_open = False
+        if self.__is_open:
+            self.__is_open = False
             self.driver.quit()
 
     def __select_going_date(self, going_date: datetime.date) -> None:
