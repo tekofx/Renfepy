@@ -3,3 +3,4 @@ rich
 python-dateutil
 build
 twine
+prettytable

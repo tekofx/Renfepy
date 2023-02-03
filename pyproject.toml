@@ -21,6 +21,7 @@ dependencies = [
     "selenium",
     "rich",
     "python-dateutil",
+    "prettytable",
 ]
 requires-python = ">=3.9"
 

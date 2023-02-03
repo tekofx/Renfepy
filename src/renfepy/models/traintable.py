@@ -3,6 +3,7 @@ from typing import List
 from rich.console import Console
 from rich.table import Table
 import datetime
+import prettytable
 
 
 class TrainTable:
@@ -14,7 +15,7 @@ class TrainTable:
         self.destination = destination
         self.date = date.strftime("%d/%m/%Y")
 
-    def table(self) -> None:
+    def print_table(self) -> None:
         """Prints a table with all the trains"""
         console = Console()
 
