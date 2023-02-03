@@ -3,3 +3,7 @@ logs
 *.tar.gz
 MANIFEST
 main.py
+dist/
+*geckodriver.log
+*renfepy.log
+src/renfepy.egg-info/
