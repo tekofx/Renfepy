@@ -21,10 +21,9 @@ click = "arguments[0].click();"
 
 
 class RenfePy:
-    def __init__(self, gui: bool = False, verbose: bool = False):
+    def __init__(self, gui: bool = False):
+        self.is_open = False
         try:
-
-            self.verbose = verbose
 
             # Setup options
             options = webdriver.FirefoxOptions()
@@ -37,9 +36,16 @@ class RenfePy:
             print("Error at setting driver: {}".format(error))
 
             sys.exit()
-        else:
-            html = "https://www.renfe.com/es/es"
-            self.driver.get(html)
+
+    def open(self):
+        if not self.is_open:
+            self.is_open = True
+            self.driver.get("https://www.renfe.com/es/es")
+
+    def close(self):
+        if self.is_open:
+            self.is_open = False
+            self.driver.quit()
 
     def set_origin(self, origin: str) -> None:
         """Writes in the origin search box
@@ -240,6 +246,7 @@ class RenfePy:
         Returns:
             Tuple[TrainTable, TrainTable] | TrainTable | None: Returns a tuple of TrainTables if return_date is provided, a TrainTable if return_date is None, and None if the search failed
         """
+        self.open()
 
         elem = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "origin"))  # This is a dummy element
@@ -320,11 +327,10 @@ class RenfePy:
 
         return_trains = TrainTable(self._get_trains(), destination, origin, return_date)
 
-        self.driver.quit()
         return going_trains, return_trains
 
 
 if __name__ == "__main__":
-    renfepy = RenfePy(gui=False, verbose=True)
+    renfepy = RenfePy(gui=False)
     going_trains = renfepy.search("Madrid", "Barcelona", "04/02/2023")
     going_trains.table()
