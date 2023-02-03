@@ -226,7 +226,7 @@ class RenfePy:
         destination: str,
         going_date: str,
         return_date: str = None,
-    ) -> Tuple[TrainTable, TrainTable] | TrainTable:
+    ) -> Tuple[TrainTable, TrainTable] | TrainTable | None:
         """Gets information about trains on a certain date, and if provided, the info about trains for a return date
 
         Args:
@@ -236,7 +236,7 @@ class RenfePy:
             return_date (str, optional): return date. Defaults to None.
 
         Returns:
-            Tuple[TrainTable, TrainTable] | TrainTable: If return_date is provided, returns a tuple with the going and return train tables. If not, returns the going train table
+            Tuple[TrainTable, TrainTable] | TrainTable | None: Returns a tuple of TrainTables if return_date is provided, a TrainTable if return_date is None, and None if the search failed
         """
 
         elem = WebDriverWait(self.driver, 30).until(
@@ -298,6 +298,15 @@ class RenfePy:
                 (By.XPATH, "//tbody[@id='listaTrenesTBodyIda']")
             )
         )
+
+        trains_available = self.driver.find_element(By.ID, "tab-mensaje_contenido").text
+        print(trains_available)
+        if (
+            "El trayecto consultado no se encuentra disponible para la venta"
+            in trains_available
+        ):
+            return None
+
         going_trains = TrainTable(self._get_trains(), origin, destination, going_date)
 
         if return_date is None:
@@ -316,6 +325,5 @@ class RenfePy:
 
 if __name__ == "__main__":
     renfepy = RenfePy(gui=True, verbose=True)
-    going_trains = renfepy.search("Madrid", "Barcelona", "10/02/2023")
-
+    going_trains = renfepy.search("Madrid", "Barcelona", "15/04/2023")
     going_trains.table()
