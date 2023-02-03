@@ -182,28 +182,22 @@ class RenfePy:
         going_trains = train_table.find_elements(By.CLASS_NAME, "trayectoRow")
         output = []
         for train in going_trains:
-
             # TODO: not use XPATH because it does not look on the element you are searching
-            print(train.text)
 
             # Find div by XPATH which aria label is Hora de salida
-            departure = train.find_element(
-                By.XPATH, "//div[@aria-label='Hora de salida']"
-            ).text
+            departure = train.find_element(By.CLASS_NAME, "salida").text
             # Find div by XPATH which aria label is Duración
-            duration = train.find_element(
-                By.XPATH, "//div[@aria-label='Duración']"
-            ).text
+            duration = train.find_element(By.CLASS_NAME, "duracion").text
 
             # Find div by XPATH which aria label is Hora de llegada
-            arrival = train.find_element(
-                By.XPATH, "//div[@aria-label='Hora de llegada']"
-            ).text
+            arrival = train.find_element(By.CLASS_NAME, "llegada").text
 
             # Find div by XPATH which aria label is Tipo de tren
-            train_type = train.find_element(
-                By.XPATH, "//div[@aria-label='Tipo de tren']"
-            ).text
+            divs = train.find_elements(By.TAG_NAME, "div")
+            # Get div with aria label Tipo de tren
+            for div in divs:
+                if div.get_attribute("aria-label") == "Tipo de tren":
+                    train_type = div.text
 
             # Find buttons with prices
             prices = {"Básico": 0, "Elige": 0, "Prémium": 0}
