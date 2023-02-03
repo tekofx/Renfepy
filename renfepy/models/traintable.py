@@ -2,18 +2,23 @@ from models.train import Train
 from typing import List
 from rich.console import Console
 from rich.table import Table
+import datetime
 
 
 class TrainTable:
-    def __init__(self, trains: List[Train], origin: str, destination: str) -> None:
+    def __init__(
+        self, trains: List[Train], origin: str, destination: str, date=datetime.date
+    ) -> None:
         self.trains = trains
         self.origin = origin
         self.destination = destination
+        self.date = date
 
     def table(self) -> None:
         """Prints a table with all the trains"""
         table = Table(
-            title=f"From {self.origin} to {self.destination}", show_lines=True
+            title=f"From {self.origin} to {self.destination} on {self.date}",
+            show_lines=True,
         )
         table.add_column("Tipo")
         table.add_column("Salida")
